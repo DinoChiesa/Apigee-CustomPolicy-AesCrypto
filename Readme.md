@@ -3,11 +3,12 @@
 This directory contains the Java source code for 
 a Java callout for Apigee Edge that does AES Encryption and Decryption of data or message payloads. 
 
-This code is licensed under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file. 
+This code is Copyright (c) 2016 Apigee Corp, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+
 
 ## Using the Custom Policy
 
-If you edit policies offline, copy the jar file for the custom policy, available in  callout/target/edge-callout-aes-encryptor-1.0-SNAPSHOT.jar  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-encryptor-1.0-SNAPSHOT.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
 When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems. 
 To do that, the encrypting and decrypting systems need to use the same key, the same AES mode, the same padding, and the same Initialization Vector (IV). Read up on AES if this is not clear to you.
@@ -40,7 +41,6 @@ This custom policy can derive a key and optionally, an IV, from a passphrase usi
 PBKDF2 requires a passphrase, a salt, a key strength, and a number of iterations. When configuring this policy to use PBKDF2, you must specify a passphrase. You may explicitly specify a salt, a desired output key strength in bits, and a number of iterations. The policy defaults those settings to the UTF-8 bytes for "Apigee-IloveAPIs", 128, and 128001, respectively, when they are not specified. 
 
 The policy configurator can specify to derive just a key, or both a key and IV.  The key is taken from the first N bits, where N may be 128, 192, or 256 as specified by the configurator. For 128 bits, it means the key will be an octet stream of length 16. If an IV is also needed, the policy will take the next 128 bits from the output of the PBKDF2 as the random IV. The IV for AES is always 128 bits; that is the block length of AES. 
-
 
 ## Example: Basic Encryption with a Passphrase, and Numerous Defaults
 
@@ -151,7 +151,7 @@ What will this policy configuration do?
 * The result is decoded via UTF-8 to produce a plain string. (This only works if the original clear text was a plain string).
 
 
-## Example: Basic Encryption with a Passphrase, and different settings
+## Example: 256-bit Encryption with a Passphrase, and different settings
 
   ```xml
   <JavaCallout name="Java-AesEncrypt1">
@@ -182,7 +182,7 @@ Here's what will happen with this configuration:
 
 
 
-## Example: Basic Encryption with a Passphrase, and a specific IV
+## Example: 256-bit AES(CFB) Encryption with a Passphrase, and a specific IV
 
   ```xml
   <JavaCallout name="Java-AesEncrypt1">
@@ -206,6 +206,24 @@ Here's what will happen with this configuration:
 This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros. 
 
 
+## Detecting Success and Errors
+
+The policy will return ABORT and set the context variable `crypto_error` if there has been any error at runtime. Your proxy bundles can check this variable in `FaultRules`.
+
+Errors can result at runtime if
+
+* you do not specify an `action` property, or the `action` is neither `encrypt` nor `decrypt`
+* you pass a key of invalid length (not 128, 192, or 256 bits)
+* you pass a `key-strength` that is not 128, 192, or 256
+* you pass an `iv` of invalid length (not 128 bits)
+* you specify a `mode` that is invalid (not `CBC`, `CFB`, `OFB`)
+* you specify a `padding` that is neither `NoPadding` nor `PKCS5Padding`
+* you specify `NoPadding` and your source (cleartext when encrypting) is not a multiple of 16-bytes in length
+* `action` = decrypt, and your source is not a multiple of 16-bytes in length
+* you use a `decode-*` parameter that is neither hex nor base64
+* some other configuration value is null or invalid
+
+
 ## Notes on Usage and Efficiency
 
 You can encrypt with a passphrase, but that means deriving a key from the passphrase with PBKDF2. Deriving a new key every time you use the policy will mean that performance will be sub-optimal at high load. It will perform better at load if you specify the key explicitly, and do not ask the policy to perform the calculations to derive the key. You can specify the key directly as a hex-encoded string.
@@ -213,13 +231,32 @@ You can encrypt with a passphrase, but that means deriving a key from the passph
 One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Vault for future use. Upon subsequent calls, the policy flow would retrieve the key & IV and call the policy with those retrieved values.  This is only a suggestion. 
 
 
+## On Key Strength
+
+If you use the Oracle JDK to run this policy, either for tests during a build, or in actual deployment, 256-bit encryption requires the Unlimited Strength JCE from Oracle. (For example, this is [the download for Java 7](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html) )
+
+Without the Unlimited Strength JCE, you may get an exception while running tests or when trying to initiate a cipher with a key greater than 128 bits:
+
+```
+java.security.InvalidKeyException: Illegal key size
+        at javax.crypto.Cipher.checkCryptoPerm(Cipher.java:1039)
+        ....
+```
+
+When run in an Apigee Edge Message Processor, this will cause the crypto_error context variable to be set, with the message "Illegal key size". 
+
+See [this article](http://stackoverflow.com/a/6481658/48082) for more information and some discussion on this exception. 
+
+If you use OpenJDK to run the tests, or to deploy the Polocy, then it's not an issue. (The Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
+
+
 
 ## Bulding the Jar
 
 You do not need to build the Jar in order to use the custom policy. The custom policy is ready to use, with policy configuration. 
-You need to re-build the jar only if you want to modify the custom policy.
+You need to re-build the jar only if you want to modify the behavior of the custom policy. Before you do that, be sure you understand all the configuration options - the policy may be usable for you without modification. 
 
-If you do wish to build the jar, you can use maven to do so. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
+If you do wish to build the jar, you can use [maven](https://maven.apache.org/download.cgi) to do so. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
 
 Preparation, first time only: `./buildsetup.sh`
 
@@ -241,3 +278,6 @@ These jars are specified in the pom.xml file.
 You do not need to upload any of these Jars to Apigee Edge with your policy.  They are all available in Apigee Edge already. 
 
 
+## Author
+
+Dino Chiesa
