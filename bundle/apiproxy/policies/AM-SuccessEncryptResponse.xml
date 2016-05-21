@@ -1,0 +1,17 @@
+<AssignMessage name='AM-SuccessEncryptResponse'>
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <Set>
+    <Payload contentType='application/json'
+             variablePrefix='%' variableSuffix='#'><![CDATA[{
+  "ciphertext": "%crypto_output#",
+  "cipher": "%crypto_cipher#",
+  "pbkdf2_iterations": "%crypto_pbkdf2_iterations#",
+  "iv_hex": "%crypto_iv_hex#",
+  "salt_hex": "%crypto_salt_hex#",
+  "note": "you need the ciphertext, and a key and an IV to decrypt. Those are derived from the passphrase, with the salt and number of iterations"
+}
+]]></Payload>
+    <StatusCode>200</StatusCode>
+    <ReasonPhrase>OK</ReasonPhrase>
+  </Set>
+</AssignMessage>

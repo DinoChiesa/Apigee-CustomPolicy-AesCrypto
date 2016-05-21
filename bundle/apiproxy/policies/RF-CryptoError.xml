@@ -1,0 +1,15 @@
+<RaiseFault name='RF-CryptoError'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'
+               variablePrefix='%' variableSuffix='#'><![CDATA[{
+  "error" : true,
+  "message" : "%crypto_error#"
+}
+]]></Payload>
+      <StatusCode>500</StatusCode>
+      <ReasonPhrase>Server Error</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

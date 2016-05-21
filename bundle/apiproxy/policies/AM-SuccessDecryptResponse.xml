@@ -1,0 +1,13 @@
+<AssignMessage name='AM-SuccessDecryptResponse'>
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <Set>
+    <Payload contentType='application/json'
+             variablePrefix='%' variableSuffix='#'><![CDATA[{
+  "output": "%crypto_output#",
+  "cipher": "%crypto_cipher#"
+}
+]]></Payload>
+    <StatusCode>200</StatusCode>
+    <ReasonPhrase>OK</ReasonPhrase>
+  </Set>
+</AssignMessage>

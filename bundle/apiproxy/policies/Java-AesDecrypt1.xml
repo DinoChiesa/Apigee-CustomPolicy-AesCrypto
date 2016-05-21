@@ -1,0 +1,11 @@
+<JavaCallout name="Java-AesDecrypt1">
+  <Properties>
+    <Property name='action'>decrypt</Property>
+    <Property name='debug'>true</Property>
+    <Property name='decode-source'>{source_decoding}</Property>
+    <Property name='passphrase'>{request.queryparam.passphrase}</Property>
+    <Property name='utf8-decode-result'>true</Property>
+  </Properties>
+  <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
+  <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+</JavaCallout>

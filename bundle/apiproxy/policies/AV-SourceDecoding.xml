@@ -1,0 +1,8 @@
+<AssignMessage name='AV-SourceDecoding'>
+  <DisplayName>AV-SourceDecoding</DisplayName>
+  <AssignVariable>
+    <Name>source_decoding</Name>
+    <Ref>request.queryparam.source_decoding</Ref>
+    <Value>base64</Value>
+  </AssignVariable>
+</AssignMessage>

@@ -1,0 +1,19 @@
+<RaiseFault name="RF-BadRequest">
+  <DisplayName>RF-BadRequest</DisplayName>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+   <Set>
+     <Payload contentType="application/json" variablePrefix='%'
+              variableSuffix='#'>{
+   "error" : "Bad Request.",
+   "links" : {
+     "encrypt" : "POST /encrypt?passphrase=ABCDEFG   ...PAYLOAD...",
+     "decrypt" : "POST /decrypt?passphrase=ABCDEFG&amp;iv=diudiu     ...PAYLOAD..."
+   }
+}
+</Payload>
+     <StatusCode>404</StatusCode>
+     <ReasonPhrase>Bad Request</ReasonPhrase>
+   </Set>
+ </FaultResponse>
+</RaiseFault>

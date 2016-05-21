@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProxyEndpoint name="default">
+  <Description>Default Proxy</Description>
+
+  <HTTPProxyConnection>
+    <BasePath>/aes-trial</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+
+  <PreFlow>
+    <Request>
+    </Request>
+  </PreFlow>
+
+  <Flows>
+
+    <Flow name="encrypt 1">
+      <Description>encrypt the plaintext payload using a passphrase</Description>
+      <Request>
+        <Step>
+          <Name>RF-BadRequest</Name>
+          <Condition>request.queryparam.passphrase = null</Condition>
+        </Step>
+        <Step>
+          <Name>Java-AesEncrypt1</Name>
+        </Step>
+        <Step>
+          <Name>RF-CryptoError</Name>
+          <Condition>crypto_error != null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessEncryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/encrypt") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name="decrypt 1">
+      <Description>decrypt the plaintext payload using a passphrase</Description>
+      <Request>
+        <Step>
+          <Name>RF-BadRequest</Name>
+          <Condition>request.queryparam.passphrase = null</Condition>
+        </Step>
+        <Step>
+          <Name>AV-SourceDecoding</Name>
+        </Step>
+        <Step>
+          <Name>Java-AesDecrypt1</Name>
+        </Step>
+        <Step>
+          <Name>RF-CryptoError</Name>
+          <Condition>crypto_error != null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessDecryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/decrypt1") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name="decrypt 2">
+      <Description>decrypt the plaintext payload using a key and IV</Description>
+      <Request>
+        <Step>
+          <Name>RF-BadRequest</Name>
+          <Condition>request.queryparam.key = null OR request.queryparam.iv = null</Condition>
+        </Step>
+        <Step>
+          <Name>AV-SourceDecoding</Name>
+        </Step>
+        <Step>
+          <Name>Java-AesDecrypt2</Name>
+        </Step>
+        <Step>
+          <Name>RF-CryptoError</Name>
+          <Condition>crypto_error != null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessDecryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/decrypt2") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name='unknown'>
+      <Description>unknown request</Description>
+      <Request>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
+      </Request>
+    </Flow>
+  </Flows>
+
+  <RouteRule name="Loopback"/>
+
+</ProxyEndpoint>
