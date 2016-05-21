@@ -32,12 +32,12 @@ The policy has not been tested with AES modes other than CBC, OFB, or CFB.
 
 ## Deriving Keys from Passphrases
 
-PBKDF2 refers to Password-Based Key Derivation Function 2.  This is a standard described in RFC2898.
+[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) refers to Password-Based Key Derivation Function 2.  This is a standard described officially in [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 It allows the derivation of a cryptographically strong key from a text password.
 
 This custom policy can derive a key and IV from a passphrase using PBKDF2.
 
-PBKDF2 requires a passphrase, a salt, and a number of iterations. When configuring this policy to use PBKDF2, you must specify a passphrase. You may explicitly specify a salt and a number of iterations. The policy defaults those settings to the UTF-8 bytes for "Apigee-IloveAPIs" and 128001 respectively when they are not specified. 
+PBKDF2 requires a passphrase, a salt, a key strength, and a number of iterations. When configuring this policy to use PBKDF2, you must specify a passphrase. You may explicitly specify a salt, a desired output key strength in bits, and a number of iterations. The policy defaults those settings to the UTF-8 bytes for "Apigee-IloveAPIs", 128, and 128001, respectively, when they are not specified. 
 
 
 ## Example: Basic Encryption with a Passphrase, and Numerous Defaults
@@ -93,7 +93,7 @@ These are the properties available on the policy:
 | decode-key        | optional. If specified, use either "hex" or "base64".|
 | decode-iv         | optional. "hex" or "base64".|
 | passphrase        | optional. a passphrase to use, dor deriving the key + IV via PBKDF2. Not used if key is specified. |
-| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See RFC2898)|
+| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt))|
 | salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified. |
 | key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits. |
 | source            | name of the context variable containing the data to encrypt or decrypt. | 
@@ -130,6 +130,12 @@ No source property is specified, therefore this policy configuration will encryp
 Specifying the passphrase means that a key and IV will be derived using PBKDF2. There is no pbkdf2-iterations property, so the policy will use its default value of 128001 iterations. There is no salt specified, so the policy uses its default of "Apigee-IloveAPIs". There's no key-strength property,  so the default of 128 bits applies.  There is no mode specified, so CBC is used.  
 The result is decoded via UTF-8 to produce a plain string. (This only works if the original clear text was a plain string).
 
+
+## Notes on Usage
+
+You can encrypt with a passphrase, but that means deriving a key from the passphrase with PBKDF2. Deriving a new key every time you use the policy will mean that performance will be sub-optimal at high load. It will perform better at load if you specify the key explicitly, and do not ask the policy to perform the calculations to derive the key. You can specify the key directly as a hex-encoded string.
+
+One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Vault for future use. Upon subsequent calls, the policy flow would retrieve the key & IV and call the policy with those retrieved values.  This is only a suggestion. 
 
 
 
