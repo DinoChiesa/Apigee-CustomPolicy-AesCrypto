@@ -8,7 +8,7 @@ This code is Copyright (c) 2016 Apigee Corp, and is released under the Apache So
 
 ## Using the Custom Policy
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-encryptor-1.0-SNAPSHOT.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-encryptor-1.0.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
 When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems. 
 To do that, the encrypting and decrypting systems need to use the same key, the same AES mode, the same padding, and the same Initialization Vector (IV). Read up on AES if this is not clear to you.
@@ -53,7 +53,7 @@ The policy configurator can specify to derive just a key, or both a key and IV. 
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -83,7 +83,7 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -138,7 +138,7 @@ These are the properties available on the policy:
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -166,7 +166,7 @@ What will this policy configuration do?
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -199,7 +199,7 @@ Here's what will happen with this configuration:
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
   </JavaCallout>
   ```
 

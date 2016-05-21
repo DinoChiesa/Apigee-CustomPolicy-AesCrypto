@@ -10,5 +10,5 @@
     <Property name='utf8-decode-result'>true</Property>
   </Properties>
   <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://edge-callout-aes-encryptor-1.0-SNAPSHOT.jar</ResourceURL>
+  <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
 </JavaCallout>

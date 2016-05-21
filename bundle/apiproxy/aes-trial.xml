@@ -5,7 +5,7 @@
     <CreatedBy>orgAdmin</CreatedBy>
     <Description>An example API Proxy that demonstrates how to use the AES Crypto custom policy</Description>
     <DisplayName>aes-trial</DisplayName>
-    <LastModifiedAt>1463797333456</LastModifiedAt>
+    <LastModifiedAt>1463848403570</LastModifiedAt>
     <LastModifiedBy>orgAdmin</LastModifiedBy>
     <TargetEndpoints/>
 </APIProxy>
