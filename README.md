@@ -93,7 +93,7 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
   </JavaCallout>
   ```
 
-What will this poloicy configuration do?:
+What will this policy configuration do?:
 
 * the action is decrypt, so the policy will decrypt
 * No source property is specified, therefore this policy will decrypt the message.content.
