@@ -1,16 +1,16 @@
 # AES Crypto callout
 
-This directory contains the Java source code for 
-a Java callout for Apigee Edge that does AES Encryption and Decryption of data or message payloads. 
+This directory contains the Java source code for
+a Java callout for Apigee Edge that does AES Encryption and Decryption of data or message payloads.
 
 This code is Copyright (c) 2016 Apigee Corp, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 
 ## Using the Custom Policy
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-encryptor-1.0.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-1.0.1.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
-When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems. 
+When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems.
 To do that, the encrypting and decrypting systems need to use the same key, the same AES mode, the same padding, and the same Initialization Vector (IV). Read up on AES if this is not clear to you.
 
 The policy performs only AES crypto.
@@ -23,13 +23,13 @@ The policy performs encryption or decryption of data, using the AES algorithm. T
 - the policy uses as its source, the message.content. If you wish to encrypt something else, specify it with the source property
 - The policy can use a key and initialization vector (IV) that you specify directly.
 - Specify the key & iv encoded as either base64 or hex.
-- Alternatively, specify a passphrase, and the policy will derive a key and optionally the IV via [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). If you specify the key and the passphrase, the key takes precedence. 
+- Alternatively, specify a passphrase, and the policy will derive a key and optionally the IV via [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). If you specify the key and the passphrase, the key takes precedence.
 - Specify the mode (eg, CBC, OFB, CFB), and padding (PKCS5Padding, NoPadding).
 - Specify a key strength in bits.  It defaults to 128-bit encryption.
 - optionally encode (base64, hex) the output octet stream upon encryption
 - optionally UTF-8 decode the output octet stream upon decryption
 
-The policy has not been tested with AES modes other than CBC, OFB, or CFB.  
+The policy has not been tested with AES modes other than CBC, OFB, or CFB.
 
 ## Deriving Keys from Passphrases
 
@@ -38,9 +38,9 @@ It allows the derivation of a cryptographically strong key from a text password.
 
 This custom policy can derive a key and optionally, an IV, from a passphrase using PBKDF2.
 
-PBKDF2 requires a passphrase, a salt, a key strength, and a number of iterations. When configuring this policy to use PBKDF2, you must specify a passphrase. You may explicitly specify a salt, a desired output key strength in bits, and a number of iterations. The policy defaults those settings to the UTF-8 bytes for "Apigee-IloveAPIs", 128, and 128001, respectively, when they are not specified. 
+PBKDF2 requires a passphrase, a salt, a key strength, and a number of iterations. When configuring this policy to use PBKDF2, you must specify a passphrase. You may explicitly specify a salt, a desired output key strength in bits, and a number of iterations. The policy defaults those settings to the UTF-8 bytes for "Apigee-IloveAPIs", 128, and 128001, respectively, when they are not specified.
 
-The policy configurator can specify to derive just a key, or both a key and IV.  The key is taken from the first N bits, where N may be 128, 192, or 256 as specified by the configurator. For 128 bits, it means the key will be an octet stream of length 16. If an IV is also needed, the policy will take the next 128 bits from the output of the PBKDF2 as the random IV. The IV for AES is always 128 bits; that is the block length of AES. 
+Via the configuration, you can configure the policy to derive just a key, or both a key and IV.  The key is taken from the first N bits, where N may be 128, 192, or 256 as specified by the configurator. For 128 bits, it means the key will be an octet stream of length 16. If an IV is also needed, the policy will take the next 128 bits from the output of the PBKDF2 as the random IV. The IV for AES is always 128 bits; that is the block length of AES.
 
 ## Example: Basic Encryption with a Passphrase, and Numerous Defaults
 
@@ -52,8 +52,8 @@ The policy configurator can specify to derive just a key, or both a key and IV. 
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -64,11 +64,11 @@ Here's what will happen with this policy configuration:
 * There is no pbkdf2-iterations property, so the policy will use its default value of 128001 iterations.
 * There is no salt specified, so the policy uses its default of "Apigee-IloveAPIs".
 * There's no key-strength property, so the default of 128 bits applies.
-* There is no mode specified, so CBC is used. 
-* There is no padding specified, so PKCS5Padding is used. 
-* The result is encoded via base64. 
+* There is no mode specified, so CBC is used.
+* There is no padding specified, so PKCS5Padding is used.
+* The result is encoded via base64.
 
-To decrypt, either within Apigee Edge with this policy, or using some other system, the decryptor needs to use the same passphrase, the same PBKDF2 iterations and the same PBKDF2 salt, in order to arrive at the key and IV.  
+To decrypt, either within Apigee Edge with this policy, or using some other system, the decryptor needs to use the same passphrase, the same PBKDF2 iterations and the same PBKDF2 salt, in order to arrive at the key and IV.
 
 
 ### Example: Basic Decryption with a Passphrase
@@ -82,17 +82,17 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
-    <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
   </JavaCallout>
   ```
 
 What will this poloicy configuration do?:
 
 * No source property is specified, therefore this policy configuration will encrypt the message.content.
-* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text. 
-* Specifying the passphrase means that a key and IV will be derived using PBKDF2, with the defaults the same as in the prior example. 
-* There is no mode or padding specified, so AES/CBC/PKCS5Padding is used.  
+* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text.
+* Specifying the passphrase means that a key and IV will be derived using PBKDF2, with the defaults the same as in the prior example.
+* There is no mode or padding specified, so AES/CBC/PKCS5Padding is used.
 * The result is decoded via UTF-8 to produce a plain string. (Obviously, this works only if the original clear text was a plain string).
 
 
@@ -113,7 +113,7 @@ These are the properties available on the policy:
 | pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt))|
 | salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified. |
 | key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits. |
-| source            | name of the context variable containing the data to encrypt or decrypt. | 
+| source            | name of the context variable containing the data to encrypt or decrypt. |
 | decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream |
 | mode              | optional. CBC, CFB, or OFB. Defaults to CBC. |
 | padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length. |
@@ -137,17 +137,17 @@ These are the properties available on the policy:
       <Property name='decode-iv'>hex</Property>
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
-    <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
   </JavaCallout>
   ```
 
 What will this policy configuration do?
 
 * No source property is specified, therefore this policy configuration will encrypt the message.content.
-* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text. 
-* Specifying the key and iv, rather than a passphrase means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on decode-hex and decode-iv. 
-* no mode or padding specified, so AES/CBC/PKCS5Padding is used.  
+* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text.
+* Specifying the key and iv, rather than a passphrase means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on decode-hex and decode-iv.
+* no mode or padding specified, so AES/CBC/PKCS5Padding is used.
 * The result is decoded via UTF-8 to produce a plain string. (This only works if the original clear text was a plain string).
 
 
@@ -165,8 +165,8 @@ What will this policy configuration do?
       <Property name='mode'>CFB</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -174,11 +174,11 @@ Here's what will happen with this configuration:
 
 * No source property is specified, therefore this policy configuration will encrypt the message.content.
 * Specifying the passphrase means that a key and IV will be derived using PBKDF2.
-* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt. 
-* a key-strength of 256 bits will be used. 
+* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt.
+* a key-strength of 256 bits will be used.
 * The AES mode will be CFB.
-* There is no padding specified, so PKCS5Padding is used. 
-* The resulting ciphertext byte array is encoded into a string via base64. 
+* There is no padding specified, so PKCS5Padding is used.
+* The resulting ciphertext byte array is encoded into a string via base64.
 
 
 
@@ -198,12 +198,12 @@ Here's what will happen with this configuration:
       <Property name='mode'>CFB</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
   </JavaCallout>
   ```
 
-This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros. 
+This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros.
 
 
 ## Detecting Success and Errors
@@ -228,7 +228,7 @@ Errors can result at runtime if
 
 You can encrypt with a passphrase, but that means deriving a key from the passphrase with PBKDF2. Deriving a new key every time you use the policy will mean that performance will be sub-optimal at high load. It will perform better at load if you specify the key explicitly, and do not ask the policy to perform the calculations to derive the key. You can specify the key directly as a hex-encoded string.
 
-One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Vault for future use. Upon subsequent calls, the policy flow would retrieve the key & IV and call the policy with those retrieved values.  This is only a suggestion. 
+One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Vault for future use. Upon subsequent calls, the policy flow would retrieve the key & IV and call the policy with those retrieved values.  This is only a suggestion.
 
 
 ## On Key Strength
@@ -243,18 +243,21 @@ java.security.InvalidKeyException: Illegal key size
         ....
 ```
 
-When run in an Apigee Edge Message Processor, this will cause the crypto_error context variable to be set, with the message "Illegal key size". 
+When run in an Apigee Edge Message Processor, this will cause the crypto_error context variable to be set, with the message "Illegal key size".
 
-See [this article](http://stackoverflow.com/a/6481658/48082) for more information and some discussion on this exception. 
+See [this article](http://stackoverflow.com/a/6481658/48082) for more information and some discussion on this exception.
 
-If you use OpenJDK to run the tests, or to deploy the Polocy, then it's not an issue. (The Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
+If you use OpenJDK to run the tests, or to deploy the Polocy, then it's not an issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
 
 
 
 ## Bulding the Jar
 
-You do not need to build the Jar in order to use the custom policy. The custom policy is ready to use, with policy configuration. 
-You need to re-build the jar only if you want to modify the behavior of the custom policy. Before you do that, be sure you understand all the configuration options - the policy may be usable for you without modification. 
+You do not need to build the Jar in order to use the custom policy. The
+custom policy is ready to use, with policy configuration.  You need to
+re-build the jar only if you want to modify the behavior of the custom
+policy. Before you do that, be sure you understand all the configuration
+options - the policy may be usable for you without modification.
 
 If you do wish to build the jar, you can use [maven](https://maven.apache.org/download.cgi) to do so. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
 
@@ -262,10 +265,10 @@ Preparation, first time only: `./buildsetup.sh`
 
 To build: `mvn clean package`
 
-The Jar source code includes tests. 
+The Jar source code includes tests.
 
 
-## Build Dependencies 
+## Build Dependencies
 
 * Apigee Edge expressions v1.0
 * Apigee Edge message-flow v1.0
@@ -275,7 +278,7 @@ The Jar source code includes tests.
 
 These jars are specified in the pom.xml file.
 
-You do not need to upload any of these Jars to Apigee Edge with your policy.  They are all available in Apigee Edge already. 
+You do not need to upload any of these Jars to Apigee Edge with your policy.  They are all available in Apigee Edge already.
 
 
 ## Author

@@ -22,7 +22,7 @@
 // Saturday, 21 May 2016, 08:59
 //
 
-package com.dinochiesa.edgecallouts.util;
+package com.google.apigee.edgecallouts.util;
 
 import com.apigee.flow.message.MessageContext;
 import org.apache.commons.lang.StringUtils;
@@ -71,27 +71,6 @@ public final class CalloutUtil {
             throw new IllegalArgumentException("toStrip must not be blank or null");
         }
         return StringUtils.stripEnd(StringUtils.stripStart(toStrip, start), end);
-    }
-
-    /**
-     * Used to resolve dynamic runtime variables from the Apigee context.
-     * If a variable is surrounded with curly braces, it is interpreted
-     * as a dynamic variable and the value is looked up in the context.
-     * Otherwise, it returns the value passed in.
-     * @param variableName The variable name to be resolved
-     * @param ctx The Apigee context object
-     * @return The resolved variable value
-     */
-    public static String resolveVariableFromContext(String variableName, MessageContext ctx) {
-        if (StringUtils.isBlank(variableName)) {
-            throw new IllegalArgumentException("variableName may not be null or empty");
-        }
-        if(ctx == null) {
-            throw new IllegalStateException("Message context may not be null");
-        }
-        if (variableName.startsWith("{") && variableName.endsWith("}") && variableName.indexOf(" ") == -1)
-            return ctx.getVariable(stripStartAndEnd(variableName, "{", "}"));
-        return variableName;
     }
 
 }

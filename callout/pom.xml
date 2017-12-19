@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.dinochiesa</groupId>
-    <artifactId>edge-callout-aes-encryptor</artifactId>
-    <version>1.0</version>
+    <groupId>com.google.apigee</groupId>
+    <artifactId>edge-callout-aes-crypto</artifactId>
+    <version>1.0.1</version>
     <name>EdgeCustomEncryptor</name>
     <url>http://maven.apache.org</url>
     <packaging>jar</packaging>
@@ -19,7 +19,7 @@
         <mockito.all.version>1.10.19</mockito.all.version>
         <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
         <jmockit.version>1.7</jmockit.version>
-        <jdk.target.version>1.7</jdk.target.version>
+        <jdk.target.version>1.8</jdk.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -163,8 +163,4 @@
       </plugins>
     </build>
 
-    <!--scm>
-        <connection>scm:git:git://bitbucket.org/starbuckswme/apigee-http-signature</connection>
-        <developerConnection>scm:git:git://bitbucket.org/starbuckswme/apigee-http-signature</developerConnection>
-    </scm-->
 </project>

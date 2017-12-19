@@ -1,15 +1,14 @@
-<JavaCallout name="Java-AesDecrypt2">
+<JavaCallout name="Java-AesEncrypt2">
   <Properties>
-    <Property name='action'>decrypt</Property>
+    <Property name='action'>encrypt</Property>
     <Property name='debug'>true</Property>
-    <Property name='source'>request.formparam.ciphertext</Property>
-    <Property name='decode-source'>base64</Property>
+    <Property name='source'>request.formparam.cleartext</Property>
     <Property name='key'>{request.formparam.key}</Property>
     <Property name='decode-key'>hex</Property>
     <Property name='iv'>{request.formparam.iv}</Property>
     <Property name='decode-iv'>hex</Property>
     <Property name='salt'>{request.formparam.salt:IloveAPIs2018}</Property>
-    <Property name='utf8-decode-result'>true</Property>
+    <Property name='encode-result'>base64</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
   <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>

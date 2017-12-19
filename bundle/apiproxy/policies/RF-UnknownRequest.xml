@@ -3,8 +3,7 @@
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
    <Set>
-     <Payload contentType="application/json" variablePrefix='%'
-              variableSuffix='#'>{
+     <Payload contentType="application/json">{
  "error" : "Not available"
 }
 </Payload>

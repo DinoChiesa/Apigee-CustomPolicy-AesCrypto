@@ -37,7 +37,7 @@
           <Name>AM-SuccessEncryptResponse</Name>
         </Step>
       </Response>
-      <Condition>(proxy.pathsuffix MatchesPath "/encrypt") and (request.verb = "POST")</Condition>
+      <Condition>(proxy.pathsuffix MatchesPath "/encrypt1") and (request.verb = "POST")</Condition>
     </Flow>
 
     <Flow name="decrypt 1">
@@ -66,12 +66,36 @@
       <Condition>(proxy.pathsuffix MatchesPath "/decrypt1") and (request.verb = "POST")</Condition>
     </Flow>
 
+
+    <Flow name="encrypt 2">
+      <Description>encrypt the plaintext payload using a key and IV</Description>
+      <Request>
+        <Step>
+          <Name>RF-BadRequest</Name>
+          <Condition>request.formparam.key = null OR request.formparam.iv = null</Condition>
+        </Step>
+        <Step>
+          <Name>Java-AesEncrypt2</Name>
+        </Step>
+        <Step>
+          <Name>RF-CryptoError</Name>
+          <Condition>crypto_error != null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessEncryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/encrypt2") and (request.verb = "POST")</Condition>
+    </Flow>
+
     <Flow name="decrypt 2">
       <Description>decrypt the plaintext payload using a key and IV</Description>
       <Request>
         <Step>
           <Name>RF-BadRequest</Name>
-          <Condition>request.queryparam.key = null OR request.queryparam.iv = null</Condition>
+          <Condition>request.formparam.key = null OR request.formparam.iv = null</Condition>
         </Step>
         <Step>
           <Name>AV-SourceDecoding</Name>

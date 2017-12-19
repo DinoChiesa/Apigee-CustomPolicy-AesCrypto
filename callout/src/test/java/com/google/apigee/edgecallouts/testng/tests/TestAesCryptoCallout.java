@@ -19,10 +19,25 @@
 //
 // @author: Dino Chiesa
 //
+// Note:
+// If you use the Oracle JDK to run tests, this test, which does
+// 256-bit crypto, requires the Unlimited Strength JCE.
+//
+// Without it, you may get an exception while running this test:
+//
+// java.security.InvalidKeyException: Illegal key size
+//         at javax.crypto.Cipher.checkCryptoPerm(Cipher.java:1039)
+//         ....
+//
+// See http://stackoverflow.com/a/6481658/48082
+//
+// If you use OpenJDK to run the tests, then it's not an issue.
+// In that JDK, there's no restriction on key strength.
+//
 // Saturday, 21 May 2016, 08:59
 //
 
-package com.dinochiesa.edgecalluts.testng.tests;
+package com.google.apigee.edgecalluts.testng.tests;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +56,7 @@ import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.message.MessageContext;
 import com.apigee.flow.execution.ExecutionResult;
 
-import com.dinochiesa.edgecallouts.AesCryptoCallout;
+import com.google.apigee.edgecallouts.AesCryptoCallout;
 import java.nio.charset.StandardCharsets;
 
 public class TestAesCryptoCallout {
@@ -87,7 +102,9 @@ public class TestAesCryptoCallout {
         System.out.printf("=============================================\n");
     }
 
-    private void reportThings() {
+    private void reportThings(Map<String,String> props) {
+        String test = props.get("testname");
+        System.out.println("test  : " + test);
         String cipher = msgCtxt.getVariable("crypto_cipher");
         System.out.println("cipher: " + cipher);
         String action = msgCtxt.getVariable("crypto_action");
@@ -103,17 +120,18 @@ public class TestAesCryptoCallout {
         Assert.assertNotNull(ivHex);
         Assert.assertNotNull(output);
     }
-    
+
 
     @Test()
-    public void test1_Encrypt_QuickBrownFox_Hex() {
+    public void Encrypt_QuickBrownFox_Hex() {
         Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "Encrypt_QuickBrownFox_Hex");
         properties.put("action",        "encrypt");
         properties.put("passphrase",    "ABCDEFG-1234567");
         properties.put("debug",         "true");
         properties.put("padding",       "PKCS5PADDING");
         properties.put("encode-result", "hex");
-        
+
         msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
 
         AesCryptoCallout callout = new AesCryptoCallout(properties);
@@ -125,20 +143,21 @@ public class TestAesCryptoCallout {
             System.out.println("error: " + error);
 
         // check result and output
+        reportThings(properties);
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
         Assert.assertNull(error);
     }
 
     @Test()
-    public void test1_Encrypt_QuickBrownFox_Base64() {
+    public void Encrypt_QuickBrownFox_Base64() {
         Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "Encrypt_QuickBrownFox_Base64");
         properties.put("action",        "encrypt");
         properties.put("passphrase",    "ABCDEFG-1234567");
         properties.put("debug",         "true");
         properties.put("padding",       "PKCS5PADDING");
         properties.put("encode-result", "base64");
-        
+
         msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
 
         AesCryptoCallout callout = new AesCryptoCallout(properties);
@@ -151,15 +170,16 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         Assert.assertNull(error);
         String output = msgCtxt.getVariable("crypto_output");
-        Assert.assertEquals(output, "FutVqI4rZKuh08Yp4M4NtgIxn/XB/5dABt7LdinolokWgVRx+ILkJvKuR1IApkpD");
+        Assert.assertEquals(output, "FutVqI4rZKuh08Yp4M4NtgIxn_XB_5dABt7LdinolokWgVRx-ILkJvKuR1IApkpD");
     }
 
     @Test()
-    public void test1_Decrypt_QuickBrownFox() {
+    public void Decrypt_QuickBrownFox() {
         Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "Decrypt_QuickBrownFox");
         properties.put("action",             "decrypt");
         properties.put("passphrase",         "ABCDEFG-1234567");
         properties.put("iv",                 "fb14d470c24780cff5aa22836924c5af");
@@ -180,25 +200,26 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         String output = msgCtxt.getVariable("crypto_output");
         Assert.assertNotNull(output);
         Assert.assertNull(error);
     }
-    
+
     @Test()
-    public void test_CBC_Decrypt_TestString1() {
+    public void CBC_Decrypt_TestString1() {
         Map<String,String> properties = new HashMap<String,String>();
-        properties.put("action",         "decrypt");
-        properties.put("key",            "2b7e151628aed2a6abf7158809cf4f3c");
-        properties.put("decode-key",     "hex");
-        properties.put("iv",             "000102030405060708090A0B0C0D0E0F");
-        properties.put("decode-iv",      "hex");
-        properties.put("decode-source",  "hex");
-        properties.put("mode",           "CBC");
-        properties.put("padding",        "NoPadding");
-        properties.put("encode-result",  "hex");
-        properties.put("debug",          "true");
+        properties.put("testname",      "CBC_Decrypt_TestString2");
+        properties.put("action",        "decrypt");
+        properties.put("key",           "2b7e151628aed2a6abf7158809cf4f3c");
+        properties.put("decode-key",    "hex");
+        properties.put("iv",            "000102030405060708090A0B0C0D0E0F");
+        properties.put("decode-iv",     "hex");
+        properties.put("decode-source", "hex");
+        properties.put("mode",          "CBC");
+        properties.put("padding",       "NoPadding");
+        properties.put("encode-result", "hex");
+        properties.put("debug",         "true");
 
         msgCtxt.setVariable("message.content", "7649abac8119b246cee98e9b12e9197d");
 
@@ -214,26 +235,27 @@ public class TestAesCryptoCallout {
         // String cipher = msgCtxt.getVariable("crypto_cipher");
         // System.out.println("cipher: " + cipher);
         // System.out.println("output: " + output);
-        reportThings();        
+        reportThings(properties);
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
         String output = msgCtxt.getVariable("crypto_output");
-        Assert.assertEquals(output,  "6bc1bee22e409f96e93d7e117393172a");
+        Assert.assertEquals(output, "6bc1bee22e409f96e93d7e117393172a");
         Assert.assertNull(error);
     }
 
     @Test()
-    public void test_CBC_Encrypt_TestString1() {
+    public void CBC_Encrypt_TestString1() {
         Map<String,String> properties = new HashMap<String,String>();
-        properties.put("action",         "encrypt");
-        properties.put("key",            "2b7e151628aed2a6abf7158809cf4f3c");
-        properties.put("decode-key",     "hex");
-        properties.put("iv",             "000102030405060708090A0B0C0D0E0F");
-        properties.put("decode-iv",      "hex");
-        properties.put("decode-source",  "hex");
-        properties.put("mode",           "CBC");
-        properties.put("padding",        "NoPadding");
-        properties.put("encode-result",  "hex");
-        properties.put("debug",          "true");
+        properties.put("testname",      "CBC_Encrypt_TestString1");
+        properties.put("action",        "encrypt");
+        properties.put("key",           "2b7e151628aed2a6abf7158809cf4f3c");
+        properties.put("decode-key",    "hex");
+        properties.put("iv",            "000102030405060708090A0B0C0D0E0F");
+        properties.put("decode-iv",     "hex");
+        properties.put("decode-source", "hex");
+        properties.put("mode",          "CBC");
+        properties.put("padding",       "NoPadding");
+        properties.put("encode-result", "hex");
+        properties.put("debug",         "true");
 
         msgCtxt.setVariable("message.content", "6bc1bee22e409f96e93d7e117393172a");
 
@@ -247,25 +269,27 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
+
         String output = msgCtxt.getVariable("crypto_output");
         Assert.assertEquals(output, "7649abac8119b246cee98e9b12e9197d");
         Assert.assertNull(error);
     }
-    
+
     @Test()
-    public void test_CBC_Encrypt_TestString2() {
+    public void CBC_Encrypt_TestString2() {
         Map<String,String> properties = new HashMap<String,String>();
-        properties.put("action",         "encrypt");
-        properties.put("key",            "2b7e151628aed2a6abf7158809cf4f3c");
-        properties.put("decode-key",     "hex");
-        properties.put("iv",             "7649ABAC8119B246CEE98E9B12E9197D");
-        properties.put("decode-iv",      "hex");
-        properties.put("decode-source",  "hex");
-        properties.put("mode",           "CBC");
-        properties.put("padding",        "NoPadding");
-        properties.put("encode-result",  "hex");
-        properties.put("debug",          "true");
+        properties.put("testname",      "CBC_Encrypt_TestString2");
+        properties.put("action",        "encrypt");
+        properties.put("key",           "2b7e151628aed2a6abf7158809cf4f3c");
+        properties.put("decode-key",    "hex");
+        properties.put("iv",            "7649ABAC8119B246CEE98E9B12E9197D");
+        properties.put("decode-iv",     "hex");
+        properties.put("decode-source", "hex");
+        properties.put("mode",          "CBC");
+        properties.put("padding",       "NoPadding");
+        properties.put("encode-result", "hex");
+        properties.put("debug",         "true");
 
         msgCtxt.setVariable("message.content", "ae2d8a571e03ac9c9eb76fac45af8e51");
 
@@ -279,25 +303,26 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         String output = msgCtxt.getVariable("crypto_output");
-        Assert.assertEquals(output,  "5086cb9b507219ee95db113a917678b2");
+        Assert.assertEquals(output, "5086cb9b507219ee95db113a917678b2");
         Assert.assertNull(error);
     }
-    
+
     @Test()
-    public void test_OFB_Encrypt_TestString2() {
+    public void OFB_Encrypt_TestString2() {
         Map<String,String> properties = new HashMap<String,String>();
-        properties.put("action",         "encrypt");
-        properties.put("key",            "2b7e151628aed2a6abf7158809cf4f3c");
-        properties.put("decode-key",     "hex");
-        properties.put("iv",             "50FE67CC996D32B6DA0937E99BAFEC60");
-        properties.put("decode-iv",      "hex");
-        properties.put("decode-source",  "hex");
-        properties.put("mode",           "OFB");
-        properties.put("padding",        "NoPadding");
-        properties.put("encode-result",  "hex");
-        properties.put("debug",          "true");
+        properties.put("testname",      "OFB_Encrypt_TestString2");
+        properties.put("action",        "encrypt");
+        properties.put("key",           "2b7e151628aed2a6abf7158809cf4f3c");
+        properties.put("decode-key",    "hex");
+        properties.put("iv",            "50FE67CC996D32B6DA0937E99BAFEC60");
+        properties.put("decode-iv",     "hex");
+        properties.put("decode-source", "hex");
+        properties.put("mode",          "OFB");
+        properties.put("padding",       "NoPadding");
+        properties.put("encode-result", "hex");
+        properties.put("debug",         "true");
 
         msgCtxt.setVariable("message.content", "ae2d8a571e03ac9c9eb76fac45af8e51");
 
@@ -311,15 +336,16 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         String output = msgCtxt.getVariable("crypto_output");
         Assert.assertEquals(output, "7789508d16918f03f53c52dac54ed825");
         Assert.assertNull(error);
     }
 
     @Test()
-    public void test_CFB_Encrypt_TestString2() {
+    public void CFB_Encrypt_TestString2() {
         Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "CFB_Encrypt_TestString2");
         properties.put("action",         "encrypt");
         properties.put("key",            "2b7e151628aed2a6abf7158809cf4f3c");
         properties.put("decode-key",     "hex");
@@ -343,7 +369,7 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         String output = msgCtxt.getVariable("crypto_output");
         Assert.assertEquals(output, "c8a64537a0b3a93fcde3cdad9f1ce58b");
         Assert.assertNull(error);
@@ -351,30 +377,17 @@ public class TestAesCryptoCallout {
 
 
     @Test()
-    public void test_AES256_CBC_Encrypt_QuickBrownFox_Hex() {
-        // If you use the Oracle JDK to run tests, this test, which does
-        // 256-bit crypto, requires the Unlimited Strength JCE. 
-        //
-        // Without it, you may get an exception while running this test:
-        //
-        // java.security.InvalidKeyException: Illegal key size
-        //         at javax.crypto.Cipher.checkCryptoPerm(Cipher.java:1039)
-        //         ....
-        //
-        // See http://stackoverflow.com/a/6481658/48082
-        //
-        // If you use OpenJDK to run the tests, then it's not an issue.
-        // In that JDK, there's no restriction on key strength.
-        //
+    public void AES256_CBC_Encrypt_Hex() {
         Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "AES256_CBC_Encrypt_Hex");
         properties.put("action",        "encrypt");
         properties.put("passphrase",    "ABCDEFG-1234567-abcdefghijklmnopqrstuvwxyz");
-        properties.put("key-strength",  "256"); 
+        properties.put("key-strength",  "256");
         properties.put("debug",         "true");
         properties.put("mode",          "CBC");
         properties.put("padding",       "PKCS5PADDING");
         properties.put("encode-result", "hex");
-        
+
         msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
 
         AesCryptoCallout callout = new AesCryptoCallout(properties);
@@ -387,9 +400,144 @@ public class TestAesCryptoCallout {
 
         // check result and output
         Assert.assertEquals(result, ExecutionResult.SUCCESS);
-        reportThings();
+        reportThings(properties);
         Assert.assertNull(error);
     }
-    
+
+
+    @Test()
+    public void AES256_CBC_Encrypt_Hex_default_value_for_salt() {
+        Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "AES256_CBC_Encrypt_Hex_default_value_for_salt");
+        properties.put("action",        "encrypt");
+        properties.put("passphrase",    "ABCDEFG-1234567-abcdefghijklmnopqrstuvwxyz");
+        properties.put("key-strength",  "256");
+        properties.put("debug",         "true");
+        properties.put("salt",          "{unknown-variable:IloveAPIs2018}");
+        properties.put("mode",          "CBC");
+        properties.put("padding",       "PKCS5PADDING");
+        properties.put("encode-result", "hex");
+
+        msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
+
+        AesCryptoCallout callout = new AesCryptoCallout(properties);
+        ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+        // retrieve output
+        String error = msgCtxt.getVariable("crypto_error");
+        if (error!=null)
+            System.out.println("error: " + error);
+
+        // check result and output
+        Assert.assertEquals(result, ExecutionResult.SUCCESS);
+        reportThings(properties);
+        Assert.assertNull(error);
+        String output = msgCtxt.getVariable("crypto_output");
+        Assert.assertEquals(output, "861e4a6805fb7390f60325657c5f56b3b5c453ff138ec65f5c0fef43abe40a5fc8a48a624ad5475e3123896902727093");
+    }
+
+
+    @Test()
+    public void AES256_CBC_Decrypt_Hex_explicit_salt() {
+        Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",           "AES256_CBC_Decrypt_Hex_explicit_salt");
+        properties.put("action",             "decrypt");
+        properties.put("passphrase",         "ABCDEFG-1234567-abcdefghijklmnopqrstuvwxyz");
+        properties.put("key-strength",       "256");
+        properties.put("debug",              "true");
+        properties.put("salt",               "IloveAPIs2018");
+        properties.put("mode",               "CBC");
+        properties.put("source",             "ciphertext");
+        properties.put("decode-source",      "hex");
+        properties.put("padding",            "PKCS5PADDING");
+        properties.put("encode-result",      "hex");
+        properties.put("utf8-decode-result", "true");
+
+        msgCtxt.setVariable("ciphertext", "861e4a6805fb7390f60325657c5f56b3b5c453ff138ec65f5c0fef43abe40a5fc8a48a624ad5475e3123896902727093");
+
+        AesCryptoCallout callout = new AesCryptoCallout(properties);
+        ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+        // retrieve output
+        String error = msgCtxt.getVariable("crypto_error");
+        if (error!=null)
+            System.out.println("error: " + error);
+
+        // check result and output
+        reportThings(properties);
+        Assert.assertEquals(result, ExecutionResult.SUCCESS);
+        Assert.assertNull(error);
+        String output = msgCtxt.getVariable("crypto_output");
+        Assert.assertEquals(output, "The quick brown fox jumped over the lazy dog.");
+    }
+
+
+    @Test()
+    public void AES128_CBC_Encrypt_Hex_referenced_salt() {
+        Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",      "AES128_CBC_Encrypt_Hex_referenced_salt");
+        properties.put("action",        "encrypt");
+        properties.put("passphrase",    "ABCDEFG-1234567-abcdefghijklmnopqrstuvwxyz");
+        properties.put("key-strength",  "128");
+        properties.put("debug",         "true");
+        properties.put("salt",          "{known-variable:IloveAPIs2018}");
+        properties.put("mode",          "CBC");
+        properties.put("padding",       "PKCS5PADDING");
+        properties.put("encode-result", "hex");
+
+        msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
+        msgCtxt.setVariable("known-variable", "This is the salt for the operation.");
+
+        AesCryptoCallout callout = new AesCryptoCallout(properties);
+        ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+        // retrieve output
+        String error = msgCtxt.getVariable("crypto_error");
+        if (error!=null)
+            System.out.println("error: " + error);
+
+        // check result and output
+        Assert.assertEquals(result, ExecutionResult.SUCCESS);
+        reportThings(properties);
+        Assert.assertNull(error);
+        String output = msgCtxt.getVariable("crypto_output");
+        Assert.assertEquals(output, "b44a464626641cbffb088862adb36f64a6357e7fa38e9605b0034b0cc6e0d3ff32dade6635f713407fb5254e5df9c72f");
+    }
+
+
+    @Test()
+    public void AES128_CBC_Decrypt_Hex_referenced_salt() {
+        Map<String,String> properties = new HashMap<String,String>();
+        properties.put("testname",           "AES256_CBC_Decrypt_Hex_referenced_salt");
+        properties.put("action",             "decrypt");
+        properties.put("passphrase",         "ABCDEFG-1234567-abcdefghijklmnopqrstuvwxyz");
+        //properties.put("key-strength",       "128"); // default = 128
+        properties.put("debug",              "true");
+        properties.put("salt",               "{known-variable}");
+        properties.put("mode",               "CBC");
+        properties.put("source",             "ciphertext");
+        properties.put("decode-source",      "hex");
+        properties.put("padding",            "PKCS5PADDING");
+        properties.put("encode-result",      "hex");
+        properties.put("utf8-decode-result", "true");
+
+        msgCtxt.setVariable("ciphertext", "b44a464626641cbffb088862adb36f64a6357e7fa38e9605b0034b0cc6e0d3ff32dade6635f713407fb5254e5df9c72f");
+        msgCtxt.setVariable("known-variable", "This is the salt for the operation.");
+
+        AesCryptoCallout callout = new AesCryptoCallout(properties);
+        ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+        // retrieve output
+        String error = msgCtxt.getVariable("crypto_error");
+        if (error!=null)
+            System.out.println("error: " + error);
+
+        // check result and output
+        reportThings(properties);
+        Assert.assertEquals(result, ExecutionResult.SUCCESS);
+        Assert.assertNull(error);
+        String output = msgCtxt.getVariable("crypto_output");
+        Assert.assertEquals(output, "The quick brown fox jumped over the lazy dog.");
+    }
 
 }

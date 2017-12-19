@@ -6,6 +6,6 @@
     <Property name='passphrase'>{request.queryparam.passphrase}</Property>
     <Property name='utf8-decode-result'>true</Property>
   </Properties>
-  <ClassName>com.dinochiesa.edgecallouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://edge-callout-aes-encryptor-1.0.jar</ResourceURL>
+  <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+  <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
 </JavaCallout>
