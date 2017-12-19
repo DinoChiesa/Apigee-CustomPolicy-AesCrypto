@@ -1,14 +1,19 @@
 # AES Crypto callout
 
 This directory contains the Java source code for
-a Java callout for Apigee Edge that does AES Encryption and Decryption of data or message payloads.
+a Java callout for Apigee Edge that performs AES Encryption and Decryption of data or message payloads.
 
-This code is Copyright (c) 2016 Apigee Corp, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+## License
 
+This code is Copyright (c) 2017 Google Inc., and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+
+## Disclaimer
+
+This example is not an official Google product, nor is it part of an official Google product.
 
 ## Using the Custom Policy
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-1.0.1.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+You do not need to build the Jar in order to use the custom policy.
 
 When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems.
 To do that, the encrypting and decrypting systems need to use the same key, the same AES mode, the same padding, and the same Initialization Vector (IV). Read up on AES if this is not clear to you.
@@ -267,6 +272,8 @@ To build: `mvn clean package`
 
 The Jar source code includes tests.
 
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-1.0.1.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+
 
 ## Build Dependencies
 
@@ -284,3 +291,4 @@ You do not need to upload any of these Jars to Apigee Edge with your policy.  Th
 ## Author
 
 Dino Chiesa
+godino@google.com
