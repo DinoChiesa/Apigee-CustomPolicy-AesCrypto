@@ -38,7 +38,7 @@ The policy has not been tested with AES modes other than CBC, OFB, or CFB.
 
 ## Deriving Keys from Passphrases
 
-[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) refers to Password-Based Key Derivation Function 2.  This is a standard described officially in [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
+[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) refers to Password-Based Key Derivation Function 2.  This is a standard described officially in [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 It allows the derivation of a cryptographically strong key from a text password.
 
 This custom policy can derive a key and optionally, an IV, from a passphrase using PBKDF2.
@@ -64,7 +64,8 @@ Via the configuration, you can configure the policy to derive just a key, or bot
 
 Here's what will happen with this policy configuration:
 
-* No source property is specified, therefore this policy configuration will encrypt the message.content.
+* the action is encrypt, so the policy will encrypt
+* No source property is specified, therefore this policy will encrypt the message.content.
 * Specifying the passphrase means that a key and IV will be derived using PBKDF2.
 * There is no pbkdf2-iterations property, so the policy will use its default value of 128001 iterations.
 * There is no salt specified, so the policy uses its default of "Apigee-IloveAPIs".
@@ -94,12 +95,12 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
 
 What will this poloicy configuration do?:
 
-* No source property is specified, therefore this policy configuration will encrypt the message.content.
-* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text.
+* the action is decrypt, so the policy will decrypt
+* No source property is specified, therefore this policy will decrypt the message.content.
+* Because there is a decode-source property, 'base64', the policy will base64-decode the message.content to derive the cipher text.
 * Specifying the passphrase means that a key and IV will be derived using PBKDF2, with the defaults the same as in the prior example.
 * There is no mode or padding specified, so AES/CBC/PKCS5Padding is used.
-* The result is decoded via UTF-8 to produce a plain string. (Obviously, this works only if the original clear text was a plain string).
-
+* The result is decoded via UTF-8 to produce a plain string. (Obviously, this will work only if the original clear text was a plain string).
 
 
 
@@ -115,10 +116,10 @@ These are the properties available on the policy:
 | decode-key        | optional. If specified, use either "hex" or "base64".|
 | decode-iv         | optional. "hex" or "base64".|
 | passphrase        | optional. a passphrase to use, dor deriving the key + IV via PBKDF2. Not used if key is specified. |
-| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt))|
+| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt))|
 | salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified. |
 | key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits. |
-| source            | name of the context variable containing the data to encrypt or decrypt. |
+| source            | name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. |
 | decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream |
 | mode              | optional. CBC, CFB, or OFB. Defaults to CBC. |
 | padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length. |
@@ -135,6 +136,7 @@ These are the properties available on the policy:
   <JavaCallout name="Java-AesDecrypt1">
     <Properties>
       <Property name='action'>decrypt</Property>
+      <Property name='source'>ciphertext</Property>
       <Property name='decode-source'>base64</Property>
       <Property name='key'>{request.queryparam.key}</Property>
       <Property name='iv'>{request.queryparam.iv}</Property>
@@ -149,8 +151,9 @@ These are the properties available on the policy:
 
 What will this policy configuration do?
 
-* No source property is specified, therefore this policy configuration will encrypt the message.content.
-* Because there is a decode-source property, the policy will base64-decode the message.content to derive the cipher text.
+* the action tells the policy to decrypt
+* The source property is specified, therefore this policy will decrypt the value found in the context variable "ciphertext".
+* Because there is a decode-source property, the policy will base64-decode the value of "ciphertext" to derive the actual byte array for the ciphertext.
 * Specifying the key and iv, rather than a passphrase means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on decode-hex and decode-iv.
 * no mode or padding specified, so AES/CBC/PKCS5Padding is used.
 * The result is decoded via UTF-8 to produce a plain string. (This only works if the original clear text was a plain string).
@@ -177,9 +180,10 @@ What will this policy configuration do?
 
 Here's what will happen with this configuration:
 
+* The action tells the policy to encrypt
 * No source property is specified, therefore this policy configuration will encrypt the message.content.
 * Specifying the passphrase means that a key and IV will be derived using PBKDF2.
-* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt.
+* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt. Only the first 128 bits of salt are used! 
 * a key-strength of 256 bits will be used.
 * The AES mode will be CFB.
 * There is no padding specified, so PKCS5Padding is used.
@@ -233,7 +237,7 @@ Errors can result at runtime if
 
 You can encrypt with a passphrase, but that means deriving a key from the passphrase with PBKDF2. Deriving a new key every time you use the policy will mean that performance will be sub-optimal at high load. It will perform better at load if you specify the key explicitly, and do not ask the policy to perform the calculations to derive the key. You can specify the key directly as a hex-encoded string.
 
-One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Vault for future use. Upon subsequent calls, the policy flow would retrieve the key & IV and call the policy with those retrieved values.  This is only a suggestion.
+One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Encrypted KVM for future use. Upon subsequent calls, the policy flow would retrieve the key & IV from the encrypted KVM, and call the policy with those retrieved values.  This is only a suggestion.
 
 
 ## On Key Strength
@@ -252,8 +256,7 @@ When run in an Apigee Edge Message Processor, this will cause the crypto_error c
 
 See [this article](http://stackoverflow.com/a/6481658/48082) for more information and some discussion on this exception.
 
-If you use OpenJDK to run the tests, or to deploy the Polocy, then it's not an issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
-
+If you use OpenJDK to run the tests, or to deploy the Policy, then it's not an issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
 
 
 ## Bulding the Jar
