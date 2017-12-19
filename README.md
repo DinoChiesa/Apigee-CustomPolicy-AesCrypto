@@ -108,25 +108,25 @@ What will this policy configuration do?:
 
 These are the properties available on the policy:
 
-| Property          | Description                                        |
-|-------------------|----------------------------------------------------|
-| action            | required. either "decrypt" or "encrypt".           |
-| key               | optional. the cipher key. Can be 128 bits, 192 bits, or 256 bits. |
-| iv                | optional. the cipher initialization vector. Must be specified if key is specified. Should be 128 bits. |
-| decode-key        | optional. If specified, use either "hex" or "base64".|
-| decode-iv         | optional. "hex" or "base64".|
-| passphrase        | optional. a passphrase to use, dor deriving the key + IV via PBKDF2. Not used if key is specified. |
-| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt))|
-| salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified. |
-| key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits. |
-| source            | name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. |
-| decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream |
-| mode              | optional. CBC, CFB, or OFB. Defaults to CBC. |
-| padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length. |
-| output            | optional. name of the variable in which to store the output. Defaults to crypto_output. |
-| encode-result     | optional. Either hex or base64. The default is to not encode the result. |
-| utf8-decode-result| optional. true or false. Applies only when action = decrypt. Decodes the byte[] array into a UTF-8 string. |
-| debug             | optional. true or false. Emits extra context variables if true. Not for use in production. |
+| Property          | Description                                                                                                                                       |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| action            | required. either "decrypt" or "encrypt".                                                                                                          |
+| key               | optional. the cipher key. Can be 128 bits, 192 bits, or 256 bits. if not specified, must use passphrase.                                          |
+| iv                | optional. the cipher initialization vector. Required if key is specified. Should be 128 bits.                                                     |
+| decode-key        | optional. If specified, use either "hex" or "base64".                                                                                             |
+| decode-iv         | optional. "hex" or "base64".                                                                                                                      |
+| passphrase        | optional. a passphrase to use, for deriving the key + IV via PBKDF2. Not used if key is specified.                                                |
+| pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt)) Used only with passphrase.       |
+| salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified.                                                                       |
+| key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits.                                          |
+| source            | optional. name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. Defaults to `message.content`. |
+| decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream.                                                                    |
+| mode              | optional. CBC, CFB, or OFB. Defaults to CBC.                                                                                                      |
+| padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length.                               |
+| output            | optional. name of the variable in which to store the output. Defaults to crypto_output.                                                           |
+| encode-result     | optional. Either hex or base64. The default is to not encode the result. The base64 encoding is url-safe.                                         |
+| utf8-decode-result| optional. true or false. Applies only when action = decrypt. Decodes the byte[] array into a UTF-8 string.                                        |
+| debug             | optional. true or false. Emits extra context variables if true. Not for use in production.                                                        |
 
 
 
@@ -219,7 +219,7 @@ This policy works like the prior example, except, rather than deriving both the 
 
 The policy will return ABORT and set the context variable `crypto_error` if there has been any error at runtime. Your proxy bundles can check this variable in `FaultRules`.
 
-Errors can result at runtime if
+Errors can result at runtime if:
 
 * you do not specify an `action` property, or the `action` is neither `encrypt` nor `decrypt`
 * you pass a key of invalid length (not 128, 192, or 256 bits)
@@ -228,8 +228,9 @@ Errors can result at runtime if
 * you specify a `mode` that is invalid (not `CBC`, `CFB`, `OFB`)
 * you specify a `padding` that is neither `NoPadding` nor `PKCS5Padding`
 * you specify `NoPadding` and your source (cleartext when encrypting) is not a multiple of 16-bytes in length
-* `action` = decrypt, and your source is not a multiple of 16-bytes in length
+* you specify `action` = decrypt, and regardless of padding, your source is not a multiple of 16-bytes in length
 * you use a `decode-*` parameter that is neither hex nor base64
+* you specify a `decode-iv` or `decode-key` of `hex`, and the iv or key is not a HEX-encoded string. Or, you specify `base64` and your iv or key is not a base64-encoded string. 
 * some other configuration value is null or invalid
 
 
@@ -242,7 +243,7 @@ One option to get the key is to call the policy once with a passphrase to encryp
 
 ## On Key Strength
 
-If you use the Oracle JDK to run this policy, either for tests during a build, or in actual deployment, 256-bit encryption requires the Unlimited Strength JCE from Oracle. (For example, this is [the download for Java 7](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html) )
+If you use the Oracle JDK to run this policy, either for tests during a build, or in actual deployment, 256-bit encryption requires the Unlimited Strength JCE from Oracle. (For example, this is [the download for Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) )
 
 Without the Unlimited Strength JCE, you may get an exception while running tests or when trying to initiate a cipher with a key greater than 128 bits:
 
@@ -259,15 +260,14 @@ See [this article](http://stackoverflow.com/a/6481658/48082) for more informatio
 If you use OpenJDK to run the tests, or to deploy the Policy, then it's not an issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
 
 
-## Bulding the Jar
+## Building the Jar
 
-You do not need to build the Jar in order to use the custom policy. The
-custom policy is ready to use, with policy configuration.  You need to
-re-build the jar only if you want to modify the behavior of the custom
-policy. Before you do that, be sure you understand all the configuration
-options - the policy may be usable for you without modification.
+You do not need to build the Jar in order to use the custom policy. The custom policy is
+ready to use, with policy configuration. You need to re-build the jar only if you want
+to modify the behavior of the custom policy. Before you do that, be sure you understand
+all the configuration options - the policy may be usable for you without modification.
 
-If you do wish to build the jar, you can use [maven](https://maven.apache.org/download.cgi) to do so. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
+If you do wish to build the jar, you can use [maven](https://maven.apache.org/download.cgi) to do so. The build requires JDK8. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
 
 Preparation, first time only: `./buildsetup.sh`
 
