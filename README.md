@@ -5,7 +5,7 @@ a Java callout for Apigee Edge that performs AES Encryption and Decryption of da
 
 ## License
 
-This code is Copyright (c) 2017 Google Inc., and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+This code is Copyright (c) 2017 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 ## Disclaimer
 
