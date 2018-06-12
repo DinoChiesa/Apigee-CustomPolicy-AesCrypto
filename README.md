@@ -183,7 +183,7 @@ Here's what will happen with this configuration:
 * The action tells the policy to encrypt
 * No source property is specified, therefore this policy configuration will encrypt the message.content.
 * Specifying the passphrase means that a key and IV will be derived using PBKDF2.
-* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt. Only the first 128 bits of salt are used! 
+* The PBKDF2 will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt. Only the first 128 bits of salt are used!
 * a key-strength of 256 bits will be used.
 * The AES mode will be CFB.
 * There is no padding specified, so PKCS5Padding is used.
@@ -230,7 +230,7 @@ Errors can result at runtime if:
 * you specify `NoPadding` and your source (cleartext when encrypting) is not a multiple of 16-bytes in length
 * you specify `action` = decrypt, and regardless of padding, your source is not a multiple of 16-bytes in length
 * you use a `decode-*` parameter that is neither hex nor base64
-* you specify a `decode-iv` or `decode-key` of `hex`, and the iv or key is not a HEX-encoded string. Or, you specify `base64` and your iv or key is not a base64-encoded string. 
+* you specify a `decode-iv` or `decode-key` of `hex`, and the iv or key is not a HEX-encoded string. Or, you specify `base64` and your iv or key is not a base64-encoded string.
 * some other configuration value is null or invalid
 
 
