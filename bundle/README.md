@@ -13,7 +13,7 @@ To encrypt data using a passphrase, invoke the proxy like so:
 
 ```
 curl -i -H 'content-type: text/plain' -X POST \
- 'https://ORGNAME-ENVNAME.apigee.net/aes-trial/encrypt1?passphrase=Secret123' \
+ "https://$ORG-$ENV.apigee.net/aes-trial/encrypt1?passphrase=Secret123" \
  -d 'The quick brown fox jumped over the lazy dog.'
 ```
 
@@ -24,7 +24,7 @@ To decrypt data using a passphrase, invoke the proxy like so:
 
 ```
 curl -i -H 'content-type: text/plain' -X POST \
- 'https://ORGNAME-ENVNAME.apigee.net/aes-trial/decrypt1?passphrase=Secret123&source_encoding=base64' \
+ "https://$ORG-$ENV.apigee.net/aes-trial/decrypt1?passphrase=Secret123&source_encoding=base64" \
  -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
 ```
 
@@ -35,7 +35,7 @@ Again, the above generates the appropriate key and IV from the passphrase, then 
 To encrypt data using a key and IV, invoke the proxy like so:
 
 ```
-curl -i -X POST https://ORGNAME-ENVNAME.apigee.net/aes-trial/encrypt2 \
+curl -i -X POST https://$ORG-$ENV.apigee.net/aes-trial/encrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
  -d 'cleartext=The policy defaults the salt to "Apigee-IloveAPIs", the keystrength to 128 bits, and the PBKDF2 iteration count to 128001 when they are not specified.'
@@ -45,7 +45,7 @@ curl -i -X POST https://ORGNAME-ENVNAME.apigee.net/aes-trial/encrypt2 \
 To decrypt:
 
 ```
-curl -i -X POST 'https://ORGNAME-ENVNAME.apigee.net/aes-trial/decrypt2' \
+curl -i -X POST https://$ORG-$ENV.apigee.net/aes-trial/decrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
  -d 'source_encoding=base64' \

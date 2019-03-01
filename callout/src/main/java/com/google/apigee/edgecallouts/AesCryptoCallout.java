@@ -73,10 +73,9 @@ public class AesCryptoCallout implements Execution {
 
     // private static Pattern fullCipherPattern = Pattern.compile("^(DES|DESede|AES)/(CBC|EBC)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
     // private static Pattern cipherNamePattern = Pattern.compile("^(DES|DESede|AES)$", Pattern.CASE_INSENSITIVE);
-    private static Pattern fullCipherPattern = Pattern.compile("^(AES)/(CBC|EBC|CFB)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
+    private static Pattern fullCipherPattern = Pattern.compile("^(AES)/(CBC|ECB|CFB)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
     private static Pattern cipherNamePattern = Pattern.compile("^(AES)$", Pattern.CASE_INSENSITIVE);
     private final Map<String,String> properties;
-
 
     static {
         try{

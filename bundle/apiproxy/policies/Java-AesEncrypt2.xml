@@ -11,5 +11,5 @@
     <Property name='encode-result'>base64</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://edge-callout-aes-crypto-1.0.1.jar</ResourceURL>
+  <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
 </JavaCallout>

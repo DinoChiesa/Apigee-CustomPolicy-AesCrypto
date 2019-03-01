@@ -1,136 +1,123 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.google.apigee</groupId>
-    <artifactId>edge-callout-aes-crypto</artifactId>
-    <version>1.0.1</version>
-    <name>EdgeCustomEncryptor</name>
-    <url>http://maven.apache.org</url>
-    <packaging>jar</packaging>
+  <groupId>com.google.apigee</groupId>
+  <artifactId>edge-callout-aes-crypto</artifactId>
+  <version>1.0.2</version>
+  <name>EdgeCustomEncryptor</name>
+  <url>http://maven.apache.org</url>
+  <packaging>jar</packaging>
 
-    <properties>
-      <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
-        <apache.commons.lang.version>2.6</apache.commons.lang.version>
-        <apache.commons.codec.version>1.10</apache.commons.codec.version><!-- current: 1.7 -->
-        <apache.httpclient.version>4.5</apache.httpclient.version><!-- current: 4.3.5 -->
-        <apigee.expressions.version>1.0.0</apigee.expressions.version>
-        <apigee.message.flow.version>1.0.0</apigee.message.flow.version>
-        <mockito.all.version>1.10.19</mockito.all.version>
-        <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
-        <jmockit.version>1.7</jmockit.version>
-        <jdk.target.version>1.8</jdk.target.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+  <properties>
+    <apiproxy.java.rsrc.dir>../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
+    <apache.commons.lang.version>2.6</apache.commons.lang.version>
+    <apache.commons.codec.version>1.10</apache.commons.codec.version>
+    <apigee.expressions.version>1.0.0</apigee.expressions.version>
+    <apigee.message.flow.version>1.0.0</apigee.message.flow.version>
+    <mockito.all.version>1.10.19</mockito.all.version>
+    <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
+    <bouncycastle.version>1.60</bouncycastle.version>
+    <jmockit.version>1.7</jmockit.version>
+    <jdk.target.version>1.8</jdk.target.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${apache.commons.lang.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>${apache.commons.codec.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${apache.httpclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.apigee.edge</groupId>
-            <artifactId>message-flow</artifactId>
-            <version>${apigee.message.flow.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.apigee.edge</groupId>
-            <artifactId>expressions</artifactId>
-            <version>${apigee.expressions.version}</version>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${apache.commons.lang.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>${apache.commons.codec.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bouncycastle.version}</version>
+    </dependency>
 
-        <dependency>
-          <groupId>org.bouncycastle</groupId>
-          <artifactId>bcprov-jdk15on</artifactId>
-          <version>1.50</version>
-        </dependency>
+    <dependency>
+      <groupId>com.apigee.edge</groupId>
+      <artifactId>message-flow</artifactId>
+      <version>${apigee.message.flow.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.apigee.edge</groupId>
+      <artifactId>expressions</artifactId>
+      <version>${apigee.expressions.version}</version>
+    </dependency>
 
-        <dependency>
-          <groupId>org.testng</groupId>
-          <artifactId>testng</artifactId>
-          <version>${testng.version}</version>
-          <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.version}</version>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-          <groupId>com.googlecode.jmockit</groupId>
-          <artifactId>jmockit</artifactId>
-          <version>${jmockit.version}</version>
-          <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>com.googlecode.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <version>${jmockit.version}</version>
+      <scope>test</scope>
+    </dependency>
 
-    </dependencies>
+  </dependencies>
 
-    <build>
-      <plugins>
+  <build>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    <plugins>
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>copy-dependencies</id>
-              <phase>prepare-package</phase>
-              <goals>
-                <goal>copy-dependencies</goal>
-              </goals>
-              <configuration>
-                <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                <overWriteReleases>false</overWriteReleases>
-                <overWriteSnapshots>false</overWriteSnapshots>
-                <overWriteIfNewer>true</overWriteIfNewer>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <includeScope>runtime</includeScope>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.3</version>
-          <configuration>
-            <source>${jdk.target.version}</source>
-            <target>${jdk.target.version}</target>
-            <compilerArgs>
-              <!-- <arg>-verbose</arg> -->
-              <arg>-Xlint:unchecked,deprecation</arg>
-            </compilerArgs>
-          </configuration>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>${jdk.target.version}</source>
+          <target>${jdk.target.version}</target>
+          <compilerArgs>
+            <!-- <arg>-verbose</arg> -->
+            <arg>-Xlint:unchecked,deprecation</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>2.6</version>
-          <executions>
-            <execution>
-              <phase>package</phase>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-
-          <configuration>
-            <archive>
-              <!-- do not include the pom.xml file in the generated jar -->
-              <addMavenDescriptor>false</addMavenDescriptor>
-            </archive>
-          </configuration>
-
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <archive>
+            <!-- do not include the pom.xml file in the generated jar -->
+            <addMavenDescriptor>false</addMavenDescriptor>
+          </archive>
+        </configuration>
+      </plugin>
 
 
       <plugin>
@@ -142,11 +129,12 @@
               <tasks>
                 <copy todir="${apiproxy.java.rsrc.dir}">
                   <fileset dir="${project.build.directory}">
-                    <include name="${project.artifactId}-${project.version}.jar"/>
+                    <include name="${project.build.finalName}.jar"/>
                     <!-- copy any required dependencies tht are not
-                    already included in the Edge runtime: -->
-                    <!-- <include name="lib/commons-net-3.3.jar"/> -->
-                    <!--                    -->
+                         already included in the Edge runtime: -->
+                    <include name="lib/*.jar"/>
+                    <exclude name="lib/message-flow-1.0.0.jar"/>
+                    <exclude name="lib/expressions-1.0.0.jar"/>
                   </fileset>
                   <mapper type="flatten"/>
                 </copy>
@@ -159,8 +147,44 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.0.5</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
-      </plugins>
-    </build>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>display-dependency-updates</goal>
+              <goal>display-plugin-updates</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+    </plugins>
+  </build>
 
 </project>

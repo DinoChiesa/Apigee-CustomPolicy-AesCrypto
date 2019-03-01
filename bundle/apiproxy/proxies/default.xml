@@ -120,7 +120,7 @@
       <Description>unknown request</Description>
       <Request>
         <Step>
-          <Name>RF-UnknownRequest</Name>
+          <Name>RF-BadRequest</Name>
         </Step>
       </Request>
     </Flow>

@@ -1,5 +1,6 @@
 <AssignMessage name='AM-SuccessEncryptResponse'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <Remove><Headers/></Remove>
   <Set>
     <Payload contentType='application/json'>{
   "ciphertext": "{crypto_output}",
@@ -7,7 +8,7 @@
   "pbkdf2_iterations": "{crypto_pbkdf2_iterations:--}",
   "salt_hex": "{crypto_salt_hex:--}",
   "iv_hex": "{crypto_iv_hex}",
-  "note": "you need the ciphertext, and a key and an IV to decrypt. The latter two are either provided directly, or are derived from the passphrase and salt, with the number of iterations"
+  "note": "To decrypt, you must pass the ciphertext, and a key and an IV. The latter two can be: either provided directly, or derived from the passphrase and salt via PBKDF2, with the number of iterations."
 }
 </Payload>
     <StatusCode>200</StatusCode>
