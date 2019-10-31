@@ -29,12 +29,12 @@ The policy performs encryption or decryption of data, using the AES algorithm. T
 - The policy can use a key and initialization vector (IV) that you specify directly.
 - Specify the key & iv encoded as either base64 or hex.
 - Alternatively, specify a passphrase, and the policy will derive a key and optionally the IV via [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). If you specify the key and the passphrase, the key takes precedence.
-- Specify the mode (eg, CBC, OFB, CFB), and padding (PKCS5Padding, NoPadding).
+- Specify the mode (eg, CBC, OFB, CFB, GCM), and padding (PKCS5Padding, NoPadding).
 - Specify a key strength in bits.  It defaults to 128-bit encryption.
 - optionally encode (base64, hex) the output octet stream upon encryption
 - optionally UTF-8 decode the output octet stream upon decryption
 
-The policy has not been tested with AES modes other than CBC, OFB, or CFB.
+The policy has not been tested with AES modes other than GCM, CBC, OFB, or CFB.
 
 ## Deriving Keys from Passphrases
 

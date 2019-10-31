@@ -47,6 +47,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -67,10 +68,14 @@ public class AesCryptoCallout implements Execution {
   private static final String variableReferencePatternString = "(.*?)\\{([^\\{\\} :][^\\{\\} ]*?)\\}(.*?)";
   private static final Pattern variableReferencePattern =
     Pattern.compile(variableReferencePatternString);
-  private static Pattern fullCipherPattern = Pattern.compile("^(AES)/(CBC|ECB|CFB)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
+  private static Pattern fullCipherPattern = Pattern.compile("^(AES)/(CBC|ECB|CFB|GCM)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
   private static Pattern cipherNamePattern = Pattern.compile("^(AES)$", Pattern.CASE_INSENSITIVE);
+
+  private static Pattern fullGCMCipherPattern = Pattern.compile("^(AES)/GCM/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
+
   private static final String commonError = "^(.+?)[:;] (.+)$";
   private static final Pattern commonErrorPattern = Pattern.compile(commonError);
+  private static final int GCM_TAG_BYTES = 16;
 
   private final Map<String,String> properties;
 
@@ -101,7 +106,7 @@ public class AesCryptoCallout implements Execution {
     return source;
   }
 
-  private String resolvePropertyValue(String spec, MessageContext msgCtxt) {
+  private String resolveVariableReferences(String spec, MessageContext msgCtxt) {
     Matcher matcher = variableReferencePattern.matcher(spec);
     StringBuffer sb = new StringBuffer();
     while (matcher.find()) {
@@ -122,22 +127,6 @@ public class AesCryptoCallout implements Execution {
     return sb.toString();
   }
 
-  private String getOutputVar(MessageContext msgCtxt) throws Exception {
-    String output = this.properties.get("output");
-    if (output == null) {
-      return varName(defaultOutputVarSuffix);
-    }
-    output = output.trim();
-    if (output.equals("")) {
-      return varName(defaultOutputVarSuffix);
-    }
-    output = resolvePropertyValue(output, msgCtxt);
-    if (output == null || output.equals("")) {
-      throw new IllegalStateException("output resolves to null or empty.");
-    }
-    return output;
-  }
-
   private byte[] getIv(MessageContext msgCtxt) throws Exception {
     return _getByteArrayProperty(msgCtxt, "iv");
   }
@@ -151,32 +140,36 @@ public class AesCryptoCallout implements Execution {
     return (result==null)? defaultSalt : result;
   }
 
+  private String _getStringProp(MessageContext msgCtxt, String name, String defaultValue) throws Exception {
+    String value = this.properties.get(name);
+    if (value != null) value = value.trim();
+    if (value == null || value.equals("")) {
+      return defaultValue;
+    }
+    value = resolveVariableReferences(value, msgCtxt);
+    if (value == null || value.equals("")) {
+      throw new IllegalStateException(name + " resolves to null or empty.");
+    }
+    return value;
+  }
+
   private EncodingType _getEncodingTypeProperty(MessageContext msgCtxt, String propName) throws Exception {
-    String decode = this.properties.get(propName);
-    if (decode == null) {
-      return EncodingType.NONE;
-    }
-    decode = decode.trim();
-    if(decode.equals("")) {
-      return EncodingType.NONE;
-    }
-    decode = resolvePropertyValue(decode, msgCtxt);
-    if (decode == null || decode.equals("")) {
-      return EncodingType.NONE;
-    }
-    return EncodingType.valueOf(decode.toUpperCase());
+    return EncodingType
+      .valueOf(_getStringProp(msgCtxt, propName, "NONE")
+               .toUpperCase());
+  }
+
+  private EncodingType getEncodeResult(MessageContext msgCtxt) throws Exception {
+    return _getEncodingTypeProperty( msgCtxt, "encode-result");
   }
 
   private byte[] _getByteArrayProperty(MessageContext msgCtxt, String propName) throws Exception {
     String key = this.properties.get(propName);
-    if (key == null) {
+    if (key != null) key = key.trim();
+    if (key == null || key.equals("")) {
       return null;
     }
-    key = key.trim();
-    if (key.equals("")) {
-      return null;
-    }
-    key = resolvePropertyValue(key, msgCtxt);
+    key = resolveVariableReferences(key, msgCtxt);
     if (key == null || key.equals("")) {
       throw new IllegalStateException(propName + " resolves to null or empty.");
     }
@@ -196,14 +189,11 @@ public class AesCryptoCallout implements Execution {
 
   private CryptoAction getAction(MessageContext msgCtxt) throws Exception {
     String action = this.properties.get("action");
-    if (action == null) {
+    if (action != null) action = action.trim();
+    if (action == null || action.equals("")) {
       throw new IllegalStateException("specify an action.");
     }
-    action = action.trim();
-    if (action.equals("")) {
-      throw new IllegalStateException("specify an action.");
-    }
-    action = resolvePropertyValue(action, msgCtxt);
+    action = resolveVariableReferences(action, msgCtxt);
     return CryptoAction.valueOf(action.toUpperCase());
   }
 
@@ -216,7 +206,7 @@ public class AesCryptoCallout implements Execution {
     if (bits.equals("")) {
       return defaultKeyStrength;
     }
-    bits = resolvePropertyValue(bits, msgCtxt);
+    bits = resolveVariableReferences(bits, msgCtxt);
     return Integer.parseInt(bits);
   }
 
@@ -229,50 +219,28 @@ public class AesCryptoCallout implements Execution {
     if (iterations.equals("")) {
       return defaultPbkdf2Iterations;
     }
-    iterations = resolvePropertyValue(iterations, msgCtxt);
+    iterations = resolveVariableReferences(iterations, msgCtxt);
     return Integer.parseInt(iterations);
   }
 
-  private String getPassphrase(MessageContext msgCtxt) throws Exception {
-    String passphrase = this.properties.get("passphrase");
-    if (passphrase == null) {
-      throw new IllegalStateException("passphrase resolves to null or empty.");
-    }
-    passphrase = passphrase.trim();
-    if (passphrase.equals("")) {
-      throw new IllegalStateException("passphrase resolves to null or empty.");
-    }
-    passphrase = resolvePropertyValue(passphrase, msgCtxt);
-    if (passphrase == null || passphrase.equals("")) {
-      throw new IllegalStateException("passphrase resolves to null or empty.");
-    }
-    return passphrase;
+  private String getPadding(MessageContext msgCtxt) throws Exception {
+    return _getStringProp(msgCtxt, "padding", defaultCryptoPadding);
   }
 
   private String getMode(MessageContext msgCtxt) throws Exception {
-    String mode = this.properties.get("mode");
-    if (mode != null) mode = mode.trim();
-    if (mode == null || mode.equals("")) {
-      return defaultCryptoMode;
-    }
-    mode = resolvePropertyValue(mode, msgCtxt);
-    if (mode == null || mode.equals("")) {
-      throw new IllegalStateException("mode resolves to null or empty.");
-    }
-    return mode;
+    return _getStringProp(msgCtxt, "mode", defaultCryptoMode);
   }
 
-  private String getPadding(MessageContext msgCtxt) throws Exception {
-    String padding = this.properties.get("padding");
-    if (padding != null) padding = padding.trim();
-    if (padding == null || padding.equals("")) {
-      return defaultCryptoPadding;
+  private String getOutputVar(MessageContext msgCtxt) throws Exception {
+    return _getStringProp(msgCtxt, "output", varName(defaultOutputVarSuffix));
+  }
+
+  private String getPassphrase(MessageContext msgCtxt) throws Exception {
+    String passphrase = _getStringProp(msgCtxt, "passphrase", null);
+    if (passphrase == null) {
+      throw new IllegalStateException("passphrase resolves to null or empty.");
     }
-    padding = resolvePropertyValue(padding, msgCtxt);
-    if (padding == null || padding.equals("")) {
-      throw new IllegalStateException("padding resolves to null or empty.");
-    }
-    return padding;
+    return passphrase;
   }
 
   private String getCipher(MessageContext msgCtxt) throws Exception {
@@ -281,7 +249,7 @@ public class AesCryptoCallout implements Execution {
     if (cipher == null || cipher.equals("")) {
       return defaultCipherName + "/" + getMode(msgCtxt) + "/" + getPadding(msgCtxt);
     }
-    cipher = resolvePropertyValue(cipher, msgCtxt);
+    cipher = resolveVariableReferences(cipher, msgCtxt);
     if (cipher == null || cipher.equals("")) {
       throw new IllegalStateException("cipher resolves to null or empty.");
     }
@@ -317,40 +285,46 @@ public class AesCryptoCallout implements Execution {
     if (flag.equals("")) {
       return defaultValue;
     }
-    flag = resolvePropertyValue(flag, msgCtxt);
+    flag = resolveVariableReferences(flag, msgCtxt);
     if (flag == null || flag.equals("")) {
       return defaultValue;
     }
     return flag.equalsIgnoreCase(TRUE);
   }
 
-  private EncodingType getEncodeResult(MessageContext msgCtxt) throws Exception {
-    String encode = this.properties.get("encode-result");
-    if (encode != null) encode = encode.trim();
-    if (encode == null || encode.equals("")) {
-      return EncodingType.NONE;
-    }
-    encode = resolvePropertyValue(encode, msgCtxt);
-    if (encode == null || encode.equals("")) {
-      return EncodingType.NONE;
-    }
-    return EncodingType.valueOf(encode.toUpperCase());
-  }
-
   private boolean getUtf8DecodeResult(MessageContext msgCtxt) throws Exception {
     return _getBooleanProperty(msgCtxt, "utf8-decode-result", false);
   }
 
+  private static boolean isGCM(String cipherName) {
+    Matcher m = fullGCMCipherPattern.matcher(cipherName);
+    return m.matches();
+  }
+
   public static byte[] aesEncrypt(String cipherName, byte[] key, byte[] iv, byte[] clearText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
-    cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+    if (isGCM(cipherName)) {
+        GCMParameterSpec gcmPspec = new GCMParameterSpec(GCM_TAG_BYTES * 8, iv);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmPspec);
+    }
+    else {
+      cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(iv));
+    }
     byte[] cryptoText = cipher.doFinal(clearText);
     return cryptoText;
   }
 
   public static byte[] aesDecrypt(String cipherName, byte[] key, byte[] iv, byte[] cipherText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
-    cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+    if (isGCM(cipherName)) {
+        GCMParameterSpec gcmPspec = new GCMParameterSpec(GCM_TAG_BYTES * 8, iv);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmPspec);
+    }
+    else {
+    cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv));
+    }
     byte[] clearText = cipher.doFinal(cipherText);
     return clearText;
   }
@@ -441,6 +415,9 @@ public class AesCryptoCallout implements Execution {
       Object source1 = msgCtxt.getVariable(getSourceVar());
       byte[] source;
 
+      if (source1 == null)
+        throw new IllegalStateException("missing source");
+
       if (source1 instanceof byte[]) {
         source = (byte[])source1;
       }
@@ -449,7 +426,7 @@ public class AesCryptoCallout implements Execution {
         source = decodeString((String)source1, decodingKind);
       }
       else {
-        // coerce and hope for the best?
+        // coerce and hope for the best
         source = (source1.toString()).getBytes(StandardCharsets.UTF_8);
       }
 
@@ -485,6 +462,7 @@ public class AesCryptoCallout implements Execution {
     }
     catch (Exception e){
       if (debug) {
+        e.printStackTrace();
         String stacktrace = getStackTraceAsString(e);
         msgCtxt.setVariable(varName("stacktrace"), stacktrace);
       }
