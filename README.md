@@ -58,7 +58,7 @@ Via the configuration, you can configure the policy to derive just a key, or bot
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -89,7 +89,7 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -145,7 +145,7 @@ These are the properties available on the policy:
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -174,7 +174,7 @@ What will this policy configuration do?
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -208,7 +208,7 @@ Here's what will happen with this configuration:
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-1.0.2.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -275,7 +275,7 @@ To build: `mvn clean package`
 
 The Jar source code includes tests.
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-1.0.2.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-20191030.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
 
 ## Author

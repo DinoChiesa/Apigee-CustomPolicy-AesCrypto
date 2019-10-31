@@ -23,8 +23,7 @@
 // Saturday, 21 May 2016, 08:59
 //
 
-
-package com.google.apigee.edgecallouts.util;
+package com.google.apigee.util;
 
 import java.nio.charset.StandardCharsets;
 import org.bouncycastle.crypto.CipherParameters;
