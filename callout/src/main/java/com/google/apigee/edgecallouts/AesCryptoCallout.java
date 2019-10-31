@@ -32,7 +32,6 @@ import com.apigee.flow.message.MessageContext;
 import com.google.apigee.util.CalloutUtil;
 import com.google.apigee.util.PasswordUtil;
 import com.google.apigee.encoding.Base16;
-//import com.google.apigee.encoding.Base32;
 import java.util.Base64;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -390,13 +389,13 @@ public class AesCryptoCallout implements Execution {
     }
   }
 
-
   private static String getStackTraceAsString(Throwable t) {
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
     t.printStackTrace(pw);
     return sw.toString();
   }
+
   private void setExceptionVariables(Exception exc1, MessageContext msgCtxt) {
     String error = exc1.toString().replaceAll("\n"," ");
     msgCtxt.setVariable(varName("exception"), error);
