@@ -29,33 +29,34 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
+import com.google.apigee.encoding.Base16;
 import com.google.apigee.util.CalloutUtil;
 import com.google.apigee.util.PasswordUtil;
-import com.google.apigee.encoding.Base16;
-import java.util.Base64;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.IntSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 @IOIntensive
 public class AesCryptoCallout implements Execution {
   private static final int AES_IV_LENGTH = 128;
-  private static final int defaultKeyStrength = 128;
-  private static final int defaultPbkdf2Iterations = 128001;
+  private static final String defaultKeyStrength = "128";
+  private static final String defaultPbkdf2Iterations = "128001";
   private static final String defaultCipherName = "AES";
   private static final String defaultCryptoMode = "CBC";
   private static final String defaultCryptoPadding = "PKCS5PADDING";
@@ -75,7 +76,10 @@ public class AesCryptoCallout implements Execution {
 
   private static final String commonError = "^(.+?)[:;] (.+)$";
   private static final Pattern commonErrorPattern = Pattern.compile(commonError);
-  private static final int GCM_TAG_BYTES = 16;
+  private static final String defaultGcmAadLength = "16";
+  //private static final int GCM_DEFAULT_TAG_BYTES = 16;
+  private static final int GCM_MIN_TAG_BYTES = 0;
+  private static final int GCM_MAX_TAG_BYTES = 2048;
 
   private final Map<String,String> properties;
 
@@ -198,29 +202,21 @@ public class AesCryptoCallout implements Execution {
   }
 
   private int getKeyStrength(MessageContext msgCtxt) throws Exception {
-    String bits = this.properties.get("key-strength");
-    if (bits == null) {
-      return defaultKeyStrength;
-    }
-    bits = bits.trim();
-    if (bits.equals("")) {
-      return defaultKeyStrength;
-    }
-    bits = resolveVariableReferences(bits, msgCtxt);
-    return Integer.parseInt(bits);
+    String iterations = _getStringProp(msgCtxt, "key-strength", defaultKeyStrength);
+    return Integer.parseInt(iterations);
   }
 
   private int getPbkdf2IterationCount(MessageContext msgCtxt) throws Exception {
-    String iterations = this.properties.get("pbkdf2-iterations");
-    if (iterations == null) {
-      return defaultPbkdf2Iterations;
-    }
-    iterations = iterations.trim();
-    if (iterations.equals("")) {
-      return defaultPbkdf2Iterations;
-    }
-    iterations = resolveVariableReferences(iterations, msgCtxt);
+    String iterations = _getStringProp(msgCtxt, "pbkdf2-iterations", defaultPbkdf2Iterations);
     return Integer.parseInt(iterations);
+  }
+
+  private int getGcmAadLength(MessageContext msgCtxt) throws Exception {
+    String length = _getStringProp(msgCtxt, "gcm-aad-length", defaultGcmAadLength);
+    int len = Integer.parseInt(length);
+    len =  Math.max(Math.min(GCM_MAX_TAG_BYTES, len),GCM_MIN_TAG_BYTES);
+    msgCtxt.setVariable(varName("gcmaadlength"), Integer.toString(len));
+    return len;
   }
 
   private String getPadding(MessageContext msgCtxt) throws Exception {
@@ -301,11 +297,11 @@ public class AesCryptoCallout implements Execution {
     return m.matches();
   }
 
-  public static byte[] aesEncrypt(String cipherName, byte[] key, byte[] iv, byte[] clearText) throws Exception {
+  public static byte[] aesEncrypt(String cipherName, byte[] key, byte[] iv, IntSupplier gcmf, byte[] clearText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
     SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
     if (isGCM(cipherName)) {
-        GCMParameterSpec gcmPspec = new GCMParameterSpec(GCM_TAG_BYTES * 8, iv);
+        GCMParameterSpec gcmPspec = new GCMParameterSpec(gcmf.getAsInt() * 8, iv);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmPspec);
     }
     else {
@@ -315,11 +311,11 @@ public class AesCryptoCallout implements Execution {
     return cryptoText;
   }
 
-  public static byte[] aesDecrypt(String cipherName, byte[] key, byte[] iv, byte[] cipherText) throws Exception {
+  public static byte[] aesDecrypt(String cipherName, byte[] key, byte[] iv, IntSupplier gcmf, byte[] cipherText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
     SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
     if (isGCM(cipherName)) {
-        GCMParameterSpec gcmPspec = new GCMParameterSpec(GCM_TAG_BYTES * 8, iv);
+      GCMParameterSpec gcmPspec = new GCMParameterSpec(gcmf.getAsInt() * 8, iv);
         cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmPspec);
     }
     else {
@@ -438,9 +434,18 @@ public class AesCryptoCallout implements Execution {
         emitEncodedOutput(msgCtxt,"iv",iv);
       }
 
+      IntSupplier gcmf = () -> {
+        try {
+          return getGcmAadLength(msgCtxt);
+        }
+        catch(Exception e) {
+          throw new RuntimeException(e);
+        }
+      };
+
       if (action == CryptoAction.DECRYPT) {
         try {
-          result = aesDecrypt(cipherName, key, iv, source);
+          result = aesDecrypt(cipherName, key, iv, gcmf, source);
         }
         catch (javax.crypto.BadPaddingException bpe) {
           // a bad key or IV
@@ -456,7 +461,7 @@ public class AesCryptoCallout implements Execution {
         }
       }
       else {
-        result = aesEncrypt(cipherName, key, iv, source);
+        result = aesEncrypt(cipherName, key, iv, gcmf, source);
         setOutput(msgCtxt, result);
       }
     }

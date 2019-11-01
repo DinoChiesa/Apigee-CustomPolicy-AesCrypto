@@ -58,7 +58,7 @@ Via the configuration, you can configure the policy to derive just a key, or bot
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -74,7 +74,10 @@ Here's what will happen with this policy configuration:
 * There is no padding specified, so PKCS5Padding is used.
 * The result is encoded via base64.
 
-To decrypt, either within Apigee Edge with this policy, or using some other system, the decryptor needs to use the same passphrase, the same PBKDF2 iterations and the same PBKDF2 salt, in order to arrive at the key and IV.
+To decrypt the result of that, either within Apigee Edge with this policy, or
+using some other system, the decryptor needs to use the same passphrase, the
+same PBKDF2 iterations and the same PBKDF2 salt, in order to arrive at the key
+and IV. And then the same AES mode, which here has defaulted to CBC. 
 
 
 ### Example: Basic Decryption with a Passphrase
@@ -89,7 +92,7 @@ To decrypt, either within Apigee Edge with this policy, or using some other syst
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -123,6 +126,7 @@ These are the properties available on the policy:
 | decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream.                                                                    |
 | mode              | optional. CBC, CFB, or OFB. Defaults to CBC.                                                                                                      |
 | padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length.                               |
+| gcm-aad-length    | optional. optional. Used only when mode=GCM. the length of the authentication tag, aka "Additional Authentication Data", in bytes. Appended to ciphertext.  Min: 0, Max: 2048 bytes |
 | output            | optional. name of the variable in which to store the output. Defaults to crypto_output.                                                           |
 | encode-result     | optional. Either hex or base64. The default is to not encode the result. The base64 encoding is url-safe.                                         |
 | utf8-decode-result| optional. true or false. Applies only when action = decrypt. Decodes the byte[] array into a UTF-8 string.                                        |
@@ -145,7 +149,7 @@ These are the properties available on the policy:
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -174,7 +178,7 @@ What will this policy configuration do?
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -208,7 +212,7 @@ Here's what will happen with this configuration:
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20191030.jar</ResourceURL>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -275,7 +279,7 @@ To build: `mvn clean package`
 
 The Jar source code includes tests.
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-20191030.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-20191031.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
 
 ## Author

@@ -4,7 +4,7 @@
 
   <groupId>com.google.apigee</groupId>
   <artifactId>edge-callout-aes-crypto</artifactId>
-  <version>20191030</version>
+  <version>20191031</version>
   <name>EdgeCustomEncryptor</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>

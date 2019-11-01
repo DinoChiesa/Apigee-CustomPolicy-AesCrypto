@@ -121,7 +121,6 @@ public class TestAesCryptoCallout {
         //Assert.assertNotNull(output);
     }
 
-
     @Test()
     public void Encrypt_QuickBrownFox_Hex() {
         Map<String,String> properties = new HashMap<String,String>();
