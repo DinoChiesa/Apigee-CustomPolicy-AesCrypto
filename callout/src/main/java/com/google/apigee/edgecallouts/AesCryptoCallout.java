@@ -55,6 +55,7 @@ import javax.crypto.spec.SecretKeySpec;
 @IOIntensive
 public class AesCryptoCallout implements Execution {
   private static final int AES_IV_LENGTH = 128;
+  private static final int GCM_AUTH_DEFAULT_TAG_BITS = 128;
   private static final String defaultKeyStrength = "128";
   private static final String defaultPbkdf2Iterations = "128001";
   private static final String defaultCipherName = "AES";
@@ -97,7 +98,7 @@ public class AesCryptoCallout implements Execution {
   }
 
   enum CryptoAction { DECRYPT, ENCRYPT };
-  enum EncodingType { NONE, BASE64, HEX };
+  enum EncodingType { NONE, BASE64, BASE64URL, BASE16, HEX };
 
   private static String varName(String s) {return varprefix + s;}
 
@@ -131,8 +132,31 @@ public class AesCryptoCallout implements Execution {
     return sb.toString();
   }
 
+  private byte[] _getByteArrayProperty(MessageContext msgCtxt, String propName) throws Exception {
+    String key = this.properties.get(propName);
+    if (key != null) key = key.trim();
+    if (key == null || key.equals("")) {
+      return null;
+    }
+    key = resolveVariableReferences(key, msgCtxt);
+    if (key == null || key.equals("")) {
+      throw new IllegalStateException(propName + " resolves to null or empty.");
+    }
+    EncodingType decodingKind = _getEncodingTypeProperty(msgCtxt, "decode-" + propName);
+    byte[] a = decodeString(key, decodingKind);
+    return a;
+  }
+
   private byte[] getIv(MessageContext msgCtxt) throws Exception {
     return _getByteArrayProperty(msgCtxt, "iv");
+  }
+
+  private byte[] getAad(MessageContext msgCtxt) throws Exception {
+    return _getByteArrayProperty(msgCtxt, "aad");
+  }
+
+  private byte[] getTag(MessageContext msgCtxt) throws Exception {
+    return _getByteArrayProperty(msgCtxt, "tag");
   }
 
   private byte[] getKey(MessageContext msgCtxt) throws Exception {
@@ -167,26 +191,15 @@ public class AesCryptoCallout implements Execution {
     return _getEncodingTypeProperty( msgCtxt, "encode-result");
   }
 
-  private byte[] _getByteArrayProperty(MessageContext msgCtxt, String propName) throws Exception {
-    String key = this.properties.get(propName);
-    if (key != null) key = key.trim();
-    if (key == null || key.equals("")) {
-      return null;
-    }
-    key = resolveVariableReferences(key, msgCtxt);
-    if (key == null || key.equals("")) {
-      throw new IllegalStateException(propName + " resolves to null or empty.");
-    }
-    EncodingType decodingKind = _getEncodingTypeProperty(msgCtxt, "decode-" + propName);
-    return decodeString(key, decodingKind);
-  }
-
   private byte[] decodeString(String s, EncodingType decodingKind) throws Exception {
-    if (decodingKind == EncodingType.HEX) {
+    if (decodingKind == EncodingType.HEX || decodingKind == EncodingType.BASE16) {
       return Base16.decode(s);
     }
     if (decodingKind == EncodingType.BASE64) {
       return Base64.getDecoder().decode(s);
+    }
+    if (decodingKind == EncodingType.BASE64URL) {
+      return Base64.getUrlDecoder().decode(s);
     }
     return s.getBytes(StandardCharsets.UTF_8);
   }
@@ -202,8 +215,17 @@ public class AesCryptoCallout implements Execution {
   }
 
   private int getKeyStrength(MessageContext msgCtxt) throws Exception {
-    String iterations = _getStringProp(msgCtxt, "key-strength", defaultKeyStrength);
-    return Integer.parseInt(iterations);
+    String v = _getStringProp(msgCtxt, "key-strength", defaultKeyStrength);
+    if (v==null)
+      throw new IllegalStateException("specify a key-strength.");
+    return Integer.parseInt(v);
+  }
+
+  private int getTagBits(MessageContext msgCtxt) throws Exception {
+    String v = _getStringProp(msgCtxt, "tag-bits", defaultKeyStrength);
+    if (v==null)
+      return 0;
+    return Integer.parseInt(v);
   }
 
   private int getPbkdf2IterationCount(MessageContext msgCtxt) throws Exception {
@@ -274,11 +296,8 @@ public class AesCryptoCallout implements Execution {
 
   private boolean _getBooleanProperty(MessageContext msgCtxt, String propName, boolean defaultValue) throws Exception {
     String flag = this.properties.get(propName);
-    if (flag == null) {
-      return defaultValue;
-    }
-    flag = flag.trim();
-    if (flag.equals("")) {
+    if (flag != null) flag = flag.trim();
+    if (flag == null || flag.equals("")) {
       return defaultValue;
     }
     flag = resolveVariableReferences(flag, msgCtxt);
@@ -297,12 +316,20 @@ public class AesCryptoCallout implements Execution {
     return m.matches();
   }
 
-  public static byte[] aesEncrypt(String cipherName, byte[] key, byte[] iv, IntSupplier gcmf, byte[] clearText) throws Exception {
+  public byte[] aesEncrypt(MessageContext msgCtxt, String cipherName, byte[] key, byte[] iv, byte[] clearText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
     SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
     if (isGCM(cipherName)) {
-        GCMParameterSpec gcmPspec = new GCMParameterSpec(gcmf.getAsInt() * 8, iv);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmPspec);
+      byte[] aad = getAad(msgCtxt);
+      if (aad == null) {
+        throw new IllegalStateException("supply an AAD.");
+      }
+      emitEncodedOutput(msgCtxt, "aad", aad);
+      int tagBits = getTagBits(msgCtxt);
+      if (tagBits==0) tagBits = GCM_AUTH_DEFAULT_TAG_BITS;
+      GCMParameterSpec gcmPspec = new GCMParameterSpec(tagBits, iv);
+      cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmPspec);
+      cipher.updateAAD(aad);
     }
     else {
       cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(iv));
@@ -311,21 +338,37 @@ public class AesCryptoCallout implements Execution {
     return cryptoText;
   }
 
-  public static byte[] aesDecrypt(String cipherName, byte[] key, byte[] iv, IntSupplier gcmf, byte[] cipherText) throws Exception {
+  public byte[] aesDecrypt(MessageContext msgCtxt, String cipherName, byte[] key, byte[] iv, byte[] cipherText) throws Exception {
     Cipher cipher = Cipher.getInstance(cipherName);
     SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
     if (isGCM(cipherName)) {
-      GCMParameterSpec gcmPspec = new GCMParameterSpec(gcmf.getAsInt() * 8, iv);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmPspec);
+      byte[] aad = getAad(msgCtxt);
+      if (aad == null) {
+        throw new IllegalStateException("supply an AAD.");
+      }
+      emitEncodedOutput(msgCtxt, "aad", aad);
+
+      byte[] tag = getTag(msgCtxt);
+      if (tag != null) {
+        emitEncodedOutput(msgCtxt, "tag", tag);
+        // upon decryption java expects the tag to be appended to the ciphertext
+        byte[] c = new byte[cipherText.length + tag.length];
+        System.arraycopy(cipherText, 0, c, 0, cipherText.length);
+        System.arraycopy(tag, 0, c, cipherText.length, tag.length);
+        cipherText = c;
+      }
+      GCMParameterSpec gcmPspec = new GCMParameterSpec(GCM_AUTH_DEFAULT_TAG_BITS, iv);
+      cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmPspec);
+      cipher.updateAAD(aad);
     }
     else {
-    cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv));
+      cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv));
     }
     byte[] clearText = cipher.doFinal(cipherText);
     return clearText;
   }
 
-  private void clearVariables(MessageContext msgCtxt) {
+  private static void clearVariables(MessageContext msgCtxt) {
     msgCtxt.removeVariable(varName("error"));
     msgCtxt.removeVariable(varName("exception"));
     msgCtxt.removeVariable(varName("stacktrace"));
@@ -334,10 +377,12 @@ public class AesCryptoCallout implements Execution {
     msgCtxt.removeVariable(varName("action"));
   }
 
-  private void emitEncodedOutput(MessageContext msgCtxt, String name, byte[] data) {
+  private static void emitEncodedOutput(MessageContext msgCtxt, String name, byte[] data) {
     String encoded = Base16.encode(data);
-    msgCtxt.setVariable(varName(name + "_hex"), encoded);
+    msgCtxt.setVariable(varName(name + "_b16"), encoded);
     encoded = Base64.getUrlEncoder().encodeToString(data);
+    msgCtxt.setVariable(varName(name + "_b64url"), encoded);
+    encoded = Base64.getEncoder().encodeToString(data);
     msgCtxt.setVariable(varName(name + "_b64"), encoded);
   }
 
@@ -346,10 +391,14 @@ public class AesCryptoCallout implements Execution {
     String outputVar = getOutputVar(msgCtxt);
     if (outputEncodingWanted == EncodingType.BASE64) {
       msgCtxt.setVariable(varName("output_encoding"), "base64");
+      msgCtxt.setVariable(outputVar, Base64.getEncoder().encodeToString(result));
+    }
+    else if (outputEncodingWanted == EncodingType.BASE64URL) {
+      msgCtxt.setVariable(varName("output_encoding"), "base64url");
       msgCtxt.setVariable(outputVar, Base64.getUrlEncoder().encodeToString(result));
     }
-    else if (outputEncodingWanted == EncodingType.HEX) {
-      msgCtxt.setVariable(varName("output_encoding"), "hex");
+    else if (outputEncodingWanted == EncodingType.HEX || outputEncodingWanted == EncodingType.BASE16) {
+      msgCtxt.setVariable(varName("output_encoding"), "base16");
       msgCtxt.setVariable(outputVar, Base16.encode(result));
     }
     else {
@@ -393,7 +442,7 @@ public class AesCryptoCallout implements Execution {
         String passphrase = getPassphrase(msgCtxt);
         int keyStrengthBits = getKeyStrength(msgCtxt);
         int iterations = getPbkdf2IterationCount(msgCtxt);
-        byte salt[] = getSalt(msgCtxt);
+        byte[] salt = getSalt(msgCtxt);
 
         emitEncodedOutput(msgCtxt, "salt", salt);
         msgCtxt.setVariable(varName("pbkdf2_iterations"), String.valueOf(iterations));
@@ -434,21 +483,13 @@ public class AesCryptoCallout implements Execution {
         emitEncodedOutput(msgCtxt,"iv",iv);
       }
 
-      IntSupplier gcmf = () -> {
-        try {
-          return getGcmAadLength(msgCtxt);
-        }
-        catch(Exception e) {
-          throw new RuntimeException(e);
-        }
-      };
-
       if (action == CryptoAction.DECRYPT) {
         try {
-          result = aesDecrypt(cipherName, key, iv, gcmf, source);
+          result = aesDecrypt(msgCtxt, cipherName, key, iv, source);
         }
         catch (javax.crypto.BadPaddingException bpe) {
           // a bad key or IV
+          bpe.printStackTrace();
           msgCtxt.setVariable(varName("error"), "decryption failed");
           return ExecutionResult.ABORT;
         }
@@ -461,13 +502,13 @@ public class AesCryptoCallout implements Execution {
         }
       }
       else {
-        result = aesEncrypt(cipherName, key, iv, gcmf, source);
+        result = aesEncrypt(msgCtxt, cipherName, key, iv, source);
         setOutput(msgCtxt, result);
       }
     }
     catch (Exception e){
       if (debug) {
-        e.printStackTrace();
+        //e.printStackTrace();
         String stacktrace = getStackTraceAsString(e);
         msgCtxt.setVariable(varName("stacktrace"), stacktrace);
       }

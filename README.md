@@ -1,11 +1,12 @@
 # AES Crypto callout
 
-This directory contains the Java source code for
-a Java callout for Apigee Edge that performs AES Encryption and Decryption of data or message payloads.
+This directory contains the Java source code for a Java callout for Apigee Edge
+that performs AES Encryption and Decryption of data or message payloads.
 
 ## License
 
-This code is Copyright (c) 2017-2019 Google LLC, and is released under the Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+This code is Copyright (c) 2017-2019 Google LLC, and is released under the
+Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 ## Disclaimer
 
@@ -15,23 +16,28 @@ This example is not an official Google product, nor is it part of an official Go
 
 You do not need to build the Jar in order to use the custom policy.
 
-When you use the policy to encrypt data, the resulting cipher-text can be decrypted by other systems. Likewise, the policy can decrypt cipher-text obtained from other systems.
-To do that, the encrypting and decrypting systems need to use the same key, the same AES mode, the same padding, and the same Initialization Vector (IV). Read up on AES if this is not clear to you.
+When you use the policy to encrypt data, the resulting cipher-text can be
+decrypted by other systems. Likewise, the policy can decrypt cipher-text
+obtained from other systems.  To do that, the encrypting and decrypting systems
+need to use the same key, the same AES mode, the same padding, and the same
+Initialization Vector (IV). Read up on AES if this is not clear to you.
 
 The policy performs only AES crypto.
 
 
 ## Policy Configuration
 
-The policy performs encryption or decryption of data, using the AES algorithm. There are a variety of options, which you can select using Properties in the configuration. Examples follow, but here's a quick summary:
+The policy performs encryption or decryption of data, using the AES
+algorithm. There are a variety of options, which you can select using Properties
+in the configuration. Examples follow, but here's a quick summary:
 
 - the policy uses as its source, the message.content. If you wish to encrypt something else, specify it with the source property
 - The policy can use a key and initialization vector (IV) that you specify directly.
-- Specify the key & iv encoded as either base64 or hex.
+- Specify the key & iv encoded as either base64, base64url, or base16.
 - Alternatively, specify a passphrase, and the policy will derive a key and optionally the IV via [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). If you specify the key and the passphrase, the key takes precedence.
 - Specify the mode (eg, CBC, OFB, CFB, GCM), and padding (PKCS5Padding, NoPadding).
 - Specify a key strength in bits.  It defaults to 128-bit encryption.
-- optionally encode (base64, hex) the output octet stream upon encryption
+- optionally encode (base64, base64url, base16) the output octet stream upon encryption
 - optionally UTF-8 decode the output octet stream upon decryption
 
 The policy has not been tested with AES modes other than GCM, CBC, OFB, or CFB.
@@ -77,7 +83,7 @@ Here's what will happen with this policy configuration:
 To decrypt the result of that, either within Apigee Edge with this policy, or
 using some other system, the decryptor needs to use the same passphrase, the
 same PBKDF2 iterations and the same PBKDF2 salt, in order to arrive at the key
-and IV. And then the same AES mode, which here has defaulted to CBC. 
+and IV. And then the same AES mode, which here has defaulted to CBC.
 
 
 ### Example: Basic Decryption with a Passphrase
@@ -116,19 +122,22 @@ These are the properties available on the policy:
 | action            | required. either "decrypt" or "encrypt".                                                                                                          |
 | key               | optional. the cipher key. Can be 128 bits, 192 bits, or 256 bits. if not specified, must use passphrase.                                          |
 | iv                | optional. the cipher initialization vector. Required if key is specified. Should be 128 bits.                                                     |
-| decode-key        | optional. If specified, use either "hex" or "base64".                                                                                             |
-| decode-iv         | optional. "hex" or "base64".                                                                                                                      |
+| decode-key        | optional. One of: {base64, base64url, base16, none}.                                                                                              |
+| decode-iv         | optional. One of: {base64, base64url, base16, none}.                                                                                              |
 | passphrase        | optional. a passphrase to use, for deriving the key + IV via PBKDF2. Not used if key is specified.                                                |
 | pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt)) Used only with passphrase.       |
 | salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified.                                                                       |
 | key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits.                                          |
 | source            | optional. name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. Defaults to `message.content`. |
-| decode-source     | optional. either "hex" or "base64", to decode from a string to a octet stream.                                                                    |
-| mode              | optional. CBC, CFB, or OFB. Defaults to CBC.                                                                                                      |
+| decode-source     | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                         |
+| mode              | optional. CBC, CFB, OFB, or GCM. Defaults to CBC.                                                                                                  |
 | padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length.                               |
-| gcm-aad-length    | optional. optional. Used only when mode=GCM. the length of the authentication tag, aka "Additional Authentication Data", in bytes. Appended to ciphertext.  Min: 0, Max: 2048 bytes |
+| aad               | optional. optional. Used only when mode=GCM. The "Additional Authenticated Data". Must specify this for encrypt or decrypt.                     |
+| decode-aad        | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                         |
+| tag               | optional. optional. Used only when mode=GCM, and action=decrypt. The authentication tag emitted during encryption.                               |
+| decode-tag        | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                         |
 | output            | optional. name of the variable in which to store the output. Defaults to crypto_output.                                                           |
-| encode-result     | optional. Either hex or base64. The default is to not encode the result. The base64 encoding is url-safe.                                         |
+| encode-result     | optional. One of: {base64, base64url, base16}. The default is to not encode the result.                                                           |
 | utf8-decode-result| optional. true or false. Applies only when action = decrypt. Decodes the byte[] array into a UTF-8 string.                                        |
 | debug             | optional. true or false. Emits extra context variables if true. Not for use in production.                                                        |
 
@@ -215,8 +224,42 @@ Here's what will happen with this configuration:
     <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
   </JavaCallout>
   ```
-
 This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros.
+
+## Example: 256-bit AES GCM decyption
+
+For this you must specify an aad, and a tag, along with a key and IV.
+
+  ```xml
+  <JavaCallout name="Java-AesEncrypt1">
+    <Properties>
+      <Property name='action'>decrypt</Property>
+      <Property name='debug'>true</Property>
+      <Property name='mode'>GCM</Property>
+      <Property name="padding">NoPadding</Property>
+      <Property name='key'>385f9fd4cba017c159956276036545b0</Property>
+      <Property name='decode-key'>base16</Property>
+      <Property name="iv">mRqogt0pxtPdgyjt</Property>
+      <Property name="decode-iv">base64url</Property>
+      <Property name="source">ciphertext</Property>
+      <Property name="decode-source">base64url</Property>
+      <Property name="aad">eyJ0eXAiOiJKV1QiLCJoZHIxIjoxMjMsImVuYyI6IkExMjhHQ00iLCJoZHIyIjp0cnVlLCJhbGciOiJSU0EtT0FFUC0yNTYifQ</Property>
+      <Property name="tag">ESdhCa_eqd2FaI5e5IH2xQ</Property>
+      <Property name="decode-tag">base64url</Property>
+      <Property name='utf8-decode-result'>true</Property>
+    </Properties>
+    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://edge-callout-aes-crypto-20191031.jar</ResourceURL>
+  </JavaCallout>
+  ```
+
+If the context variable `ciphertext` contains the value
+`73XlhsvhcsaIFJUrqZFyf0Hjgxx9A-rbPWoIdsup-ScsXuqO6RevhNdjBg`, this policy will
+decrypt the result and emit `{"sub":"dino@example.org","iat":1555976853}`.
+
+This decryption is the same that is used for encrypting payloads in
+[JWE](https://tools.ietf.org/html/rfc7516).
+
 
 
 ## Detecting Success and Errors
@@ -233,23 +276,57 @@ Errors can result at runtime if:
 * you specify a `padding` that is neither `NoPadding` nor `PKCS5Padding`
 * you specify `NoPadding` and your source (cleartext when encrypting) is not a multiple of 16-bytes in length
 * you specify `action` = decrypt, and regardless of padding, your source is not a multiple of 16-bytes in length
-* you use a `decode-*` parameter that is neither hex nor base64
-* you specify a `decode-iv` or `decode-key` of `hex`, and the iv or key is not a HEX-encoded string. Or, you specify `base64` and your iv or key is not a base64-encoded string.
+* you use a `decode-*` parameter that is not one of: {base64, base64url, base16}
+* you specify a `decode-iv` or `decode-key` of `base16`, and the iv or key is
+  not a Base16-encoded string. Or, you specify `base64` and your iv or key is
+  not a base64-encoded string. etc.
 * some other configuration value is null or invalid
 
 
-## Notes on Usage and Efficiency
+## Regarding the Passphrase and Efficiency
 
-You can encrypt with a passphrase, but that means deriving a key from the passphrase with PBKDF2. Deriving a new key every time you use the policy will mean that performance will be sub-optimal at high load. It will perform better at load if you specify the key explicitly, and do not ask the policy to perform the calculations to derive the key. You can specify the key directly as a hex-encoded string.
+You can encrypt with a passphrase, but that means deriving a key from the
+passphrase with PBKDF2. Deriving a new key every time you use the policy will
+mean that performance will be sub-optimal at high load. It's not harmful to have
+the policy derive the key each time through PBKDF2, but it does consume compute
+resources, and that requires time. The policy will perform better at load if
+you specify the key explicitly, and do not ask the policy to perform the
+calculations to derive the key. You can specify the key directly as a
+hex-encoded string.
 
-One option to get the key is to call the policy once with a passphrase to encrypt, and thereby implicitly build the key and IV. The policy flow can then retrieve the derived key from context variables, and store the key in the Apigee Edge Encrypted KVM for future use. Upon subsequent calls, the policy flow would retrieve the key & IV from the encrypted KVM, and call the policy with those retrieved values.  This is only a suggestion.
+One option for avoiding the repetitive generation of the key via PBKDF2: call
+the policy once with a passphrase to encrypt, and thereby implicitly build the
+key and IV. The policy flow can then retrieve the derived key from context
+variables, and store the key in the Apigee Encrypted KVM for future use. Then
+you can modify the policy configuration to accept not a passphrase, but an
+encoded key and IV; you would need to extend the policy flow to retrieve the key
+& IV from the encrypted KVM, and call the policy with those retrieved
+values. You could make this automatic using conditions in the flow.  You can
+alternatively derive the key and IV from some external program that implements
+PBKDF2, and store that result in the encrypted KVM. Then always configure the
+policy to accept an encoded key and IV, rather than a passphrase.
+
+## About GCM
+
+Galois Counter Mode, or GCM, allows the use of "Additional Authenticated Data",
+also known as AAD, or an authentication tag. When an actor encrypts a byte
+stream with AES / GCM, the actor can specify the length of the aad. In theory,
+this can be from 0 to 2^64 bits. With this policy, during encryption you can use
+the gcm-aad-length parameter to specify the length of the AAD in BYTES (divide
+by 8 to get the bit length). This policy limits the aad length to a multiple of
+8 bits, and the maximum can be 2048 bytes or 16384 bits.
+
+Also, when an actor encrypts a byte stream with AES / GCM, there is no meaning
+to padding, so NoPadding is equivalent to PKCS5Padding.
+
 
 
 ## On Key Strength
 
 If you use the Oracle JDK to run this policy, either for tests during a build, or in actual deployment, 256-bit encryption requires the Unlimited Strength JCE from Oracle. (For example, this is [the download for Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) )
 
-Without the Unlimited Strength JCE, you may get an exception while running tests or when trying to initiate a cipher with a key greater than 128 bits:
+Without the Unlimited Strength JCE, you may get an exception while running tests
+or when trying to initiate a cipher with a key greater than 128 bits:
 
 ```
 java.security.InvalidKeyException: Illegal key size
@@ -257,11 +334,15 @@ java.security.InvalidKeyException: Illegal key size
         ....
 ```
 
-When run in an Apigee Edge Message Processor, this will cause the crypto_error context variable to be set, with the message "Illegal key size".
+When run in an Apigee Edge Message Processor, this will cause the crypto_error
+context variable to be set, with the message "Illegal key size".
 
-See [this article](http://stackoverflow.com/a/6481658/48082) for more information and some discussion on this exception.
+See [this article](http://stackoverflow.com/a/6481658/48082) for more
+information and some discussion on this exception.
 
-If you use OpenJDK to run the tests, or to deploy the Policy, then it's not an issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's no restriction on key strength.
+If you use OpenJDK to run the tests, or to deploy the Policy, then it's not an
+issue. (The OPDK version of Apigee Edge runs on OpenJDK.)  In that JDK, there's
+no restriction on key strength.
 
 
 ## Building the Jar
@@ -271,7 +352,10 @@ ready to use, with policy configuration. You need to re-build the jar only if yo
 to modify the behavior of the custom policy. Before you do that, be sure you understand
 all the configuration options - the policy may be usable for you without modification.
 
-If you do wish to build the jar, you can use [maven](https://maven.apache.org/download.cgi) to do so. The build requires JDK8. Before you run the build the first time, you need to download the Apigee Edge dependencies into your local maven repo.
+If you do wish to build the jar, you can use
+[maven](https://maven.apache.org/download.cgi) to do so. The build requires
+JDK8. Before you run the build the first time, you need to download the Apigee
+Edge dependencies into your local maven repo.
 
 Preparation, first time only: `./buildsetup.sh`
 
@@ -279,7 +363,10 @@ To build: `mvn clean package`
 
 The Jar source code includes tests.
 
-If you edit policies offline, copy [the jar file for the custom policy](callout/target/edge-callout-aes-crypto-20191031.jar)  to your apiproxy/resources/java directory.  If you don't edit proxy bundles offline, upload that jar file into the API Proxy via the Edge API Proxy Editor .
+If you edit policies offline, copy [the jar file for the custom
+policy](callout/target/edge-callout-aes-crypto-20191031.jar) to your
+apiproxy/resources/java directory.  If you don't edit proxy bundles offline,
+upload that jar file into the API Proxy via the Edge API Proxy Editor .
 
 
 ## Author

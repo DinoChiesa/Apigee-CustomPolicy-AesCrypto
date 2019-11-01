@@ -1,0 +1,26 @@
+<JavaCallout name="Java-AesDecrypt3">
+  <Properties>
+    <Property name='action'>decrypt</Property>
+    <Property name='mode'>GCM</Property>
+    <Property name='padding'>NoPadding</Property>
+    <Property name='debug'>true</Property>
+
+    <Property name='key'>{request.formparam.key}</Property>
+    <Property name='decode-key'>base16</Property>
+
+    <Property name='iv'>{request.formparam.iv}</Property>
+    <Property name='decode-iv'>base64url</Property>
+
+    <Property name='tag'>{request.formparam.tag}</Property>
+    <Property name='decode-tag'>base64url</Property>
+
+    <Property name='aad'>{request.formparam.aad}</Property>
+
+    <Property name='source'>request.formparam.ciphertext</Property>
+    <Property name='decode-source'>base64url</Property>
+
+    <Property name='utf8-decode-result'>true</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+  <ResourceURL>java://edge-callout-aes-crypto-20191101.jar</ResourceURL>
+</JavaCallout>
