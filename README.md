@@ -226,7 +226,7 @@ Here's what will happen with this configuration:
   ```
 This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros.
 
-## Example: 256-bit AES GCM decyption
+## Example: 128-bit AES GCM decyption
 
 For this you must specify an aad, and a tag, along with a key and IV.
 
@@ -258,7 +258,9 @@ If the context variable `ciphertext` contains the value
 decrypt the result and emit `{"sub":"dino@example.org","iat":1555976853}`.
 
 This decryption is the same that is used for encrypting payloads in
-[JWE](https://tools.ietf.org/html/rfc7516).
+[JWE](https://tools.ietf.org/html/rfc7516). This example is AES 128 bit key,
+corresponding to a JWT enc="A128GCM". For A256GCM, you just need to supply a
+larger 256-bit key.  Everything else is the same. 
 
 
 
@@ -310,13 +312,21 @@ policy to accept an encoded key and IV, rather than a passphrase.
 
 Galois Counter Mode, or GCM, allows the use of "Additional Authenticated Data",
 also known as AAD, or an authentication tag. When an actor encrypts a byte
-stream with AES / GCM, the actor can specify the length of the aad. In theory,
-this can be from 0 to 2^64 bits. With this policy, during encryption you can use
-the gcm-aad-length parameter to specify the length of the AAD in BYTES (divide
-by 8 to get the bit length). This policy limits the aad length to a multiple of
-8 bits, and the maximum can be 2048 bytes or 16384 bits.
+stream with AES / GCM, the actor also specifies an "Additional Authenticated
+Data", or AAD. This is not a secret, but is used in the encryption. In theory,
+this can be from 0 to 2^64 bits. 
 
-Also, when an actor encrypts a byte stream with AES / GCM, there is no meaning
+With this policy, for encryption you use
+the aad parameter to specify the AAD.
+
+The resulting Authentication tag (an output of AES / GCM) is appended to the
+ciphertext. By default, this policy emits 128 bits of tag. 
+
+For decryption, the actor must again supply the AAD - remember, it's not a
+secret. And the actor must supply the authentication tag, if it is not already
+appended to the ciphertext. Do this with the tag parameter.
+
+Whether decrypting or encrypting a byte stream with AES / GCM, there is no meaning
 to padding, so NoPadding is equivalent to PKCS5Padding.
 
 
