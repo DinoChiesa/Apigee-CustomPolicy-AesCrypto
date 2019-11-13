@@ -3,7 +3,7 @@
   <Description>Default Proxy</Description>
 
   <HTTPProxyConnection>
-    <BasePath>/aes-trial</BasePath>
+    <BasePath>/aes-crypto</BasePath>
     <Properties/>
     <VirtualHost>secure</VirtualHost>
   </HTTPProxyConnection>
@@ -122,7 +122,7 @@
       <!--
 example
 
-curl -i -X POST https://$ORG-$ENV.apigee.net/aes-trial/decrypt3 \
+curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt3 \
  -d 'key=385f9fd4cba017c159956276036545b0' \
  -d 'iv=mRqogt0pxtPdgyjt' \
  -d 'tag=ESdhCa_eqd2FaI5e5IH2xQ' \
