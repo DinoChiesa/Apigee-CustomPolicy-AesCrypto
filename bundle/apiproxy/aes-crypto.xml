@@ -3,7 +3,7 @@
     <ConfigurationVersion minorVersion="0" majorVersion="4"/>
     <CreatedAt>1358216854854</CreatedAt>
     <CreatedBy>orgAdmin</CreatedBy>
-    <Description>An example API Proxy that demonstrates how to use the AES Crypto custom policy</Description>
+    <Description>An example API Proxy that demonstrates how to use the AES Crypto custom policy. See https://github.com/DinoChiesa/ApigeeEdge-CustomPolicy-AesCrypto</Description>
     <DisplayName>aes-crypto</DisplayName>
     <LastModifiedAt>1463848403570</LastModifiedAt>
     <LastModifiedBy>orgAdmin</LastModifiedBy>
