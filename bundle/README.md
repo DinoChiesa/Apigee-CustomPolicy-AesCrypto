@@ -38,9 +38,11 @@ To encrypt data using a key and IV, invoke the proxy like so:
 curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
- -d 'cleartext=The policy defaults the salt to "Apigee-IloveAPIs", the keystrength to 128 bits, and the PBKDF2 iteration count to 128001 when they are not specified.'
+ -d 'cleartext=Whatever you want to encrypt goes here.'
 ```
 
+The policy defaults the salt to "Apigee-IloveAPIs", the keystrength to 128 bits,
+and the PBKDF2 iteration count to 128001 when they are not specified. 
 
 To decrypt:
 
@@ -48,7 +50,7 @@ To decrypt:
 curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
- -d 'source_encoding=base64' \
+ -d 'source_decoding=base64' \
  -d 'ciphertext=cjJTqwvqlKDnX-gOSGLbVNMMKhJkD6MxfSYu7warI49Xdk17mF0ps8qfp12Xj49konM1YL5K9JC2pD3LiCHkbOpvMmnN1Rm1dgzLbSeysAPtV4FRqlX6SvTv1-7ToMeBhTVf7u5XW607umfVauUCvwqar9C7mLB4ivqW0p4RJjW5XDQzmHPI7JtO0rILsJlnXficbHsv3sh1ShR6YshgKg'
 ```
 

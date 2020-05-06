@@ -18,6 +18,11 @@
   <Flows>
 
     <Flow name="encrypt 1">
+      <!--
+      curl -i -H 'content-type: text/plain' -X POST \
+       "https://$ORG-$ENV.apigee.net/aes-crypto/encrypt1?passphrase=Secret123" \
+       -d 'The quick brown fox jumped over the lazy dog.'
+      -->
       <Description>encrypt the plaintext payload using a passphrase</Description>
       <Request>
         <Step>
@@ -41,6 +46,11 @@
     </Flow>
 
     <Flow name="decrypt 1">
+      <!--
+      curl -i -H 'content-type: text/plain' -X POST \
+        "https://$ORG-$ENV.apigee.net/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
+       -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
+      -->
       <Description>decrypt the plaintext payload using a passphrase</Description>
       <Request>
         <Step>
@@ -68,6 +78,12 @@
 
 
     <Flow name="encrypt 2">
+      <!--
+      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt2 \
+       -d 'key=2391652f01a99021d63789256e5d3d30' \
+       -d 'iv=c5b4039aadf01a1da13d04570da45265' \
+       -d 'cleartext=Whatever you want to encrypt goes here.'
+      -->
       <Description>encrypt the plaintext payload using a key and IV</Description>
       <Request>
         <Step>
@@ -91,14 +107,18 @@
     </Flow>
 
     <Flow name="decrypt 2">
+      <!--
+      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
+       -d 'key=2391652f01a99021d63789256e5d3d30' \
+       -d 'iv=c5b4039aadf01a1da13d04570da45265' \
+       -d 'source_decoding=base64' \
+       -d 'ciphertext=cjJTqwvqlKDnX-gOSGLbVNMMKhJkD6MxfSYu7warI49Xdk17mF0ps8qfp12Xj49konM1YL5K9JC2pD3LiCHkbOpvMmnN1Rm1dgzLbSeysAPtV4FRqlX6SvTv1-7ToMeBhTVf7u5XW607umfVauUCvwqar9C7mLB4ivqW0p4RJjW5XDQzmHPI7JtO0rILsJlnXficbHsv3sh1ShR6YshgKg'
+      -->
       <Description>decrypt the plaintext payload using a key and IV</Description>
       <Request>
         <Step>
           <Name>RF-BadRequest</Name>
           <Condition>request.formparam.key = null OR request.formparam.iv = null</Condition>
-        </Step>
-        <Step>
-          <Name>AV-SourceDecoding</Name>
         </Step>
         <Step>
           <Name>Java-AesDecrypt2</Name>
