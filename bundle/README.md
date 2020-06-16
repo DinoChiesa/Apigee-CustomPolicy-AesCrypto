@@ -42,7 +42,7 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt2 \
 ```
 
 The policy defaults the salt to "Apigee-IloveAPIs", the keystrength to 128 bits,
-and the PBKDF2 iteration count to 128001 when they are not specified. 
+and the PBKDF2 iteration count to 128001 when they are not specified.
 
 To decrypt:
 
@@ -57,4 +57,3 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
 ## Bugs
 
 None?
-

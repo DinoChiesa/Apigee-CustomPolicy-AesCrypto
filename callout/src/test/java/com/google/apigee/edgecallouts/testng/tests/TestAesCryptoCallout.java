@@ -3,7 +3,7 @@
 // Test code for the AES Crypto custom policy for Apigee Edge. Uses TestNG.
 // For full details see the Readme accompanying this source file.
 //
-// Copyright (c) 2016 Apigee Corp, 2017 Google LLC
+// Copyright (c) 2016 Apigee Corp, 2017-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@
 //
 // If you use OpenJDK to run the tests, then it's not an issue.
 // In that JDK, there's no restriction on key strength.
-//
-// Saturday, 21 May 2016, 08:59
 //
 
 package com.google.apigee.edgecalluts.testng.tests;
@@ -142,6 +140,41 @@ public class TestAesCryptoCallout {
     reportThings(properties);
     Assert.assertEquals(result, ExecutionResult.SUCCESS);
     Assert.assertNull(error);
+  }
+
+  @Test()
+  public void encrypt_QuickBrownFox_Base64_Generate() {
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put("testname", "encrypt_QuickBrownFox_Base64_Generate");
+    properties.put("action", "encrypt");
+    properties.put("generate-key", "true");
+    properties.put("debug", "false");
+    properties.put("padding", "PKCS5PADDING");
+    properties.put("encode-result", "base64");
+
+    msgCtxt.setVariable("message.content", "The quick brown fox jumped over the lazy dog.");
+
+    AesCryptoCallout callout = new AesCryptoCallout(properties);
+    ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+    // retrieve output
+    String error = msgCtxt.getVariable("crypto_error");
+    if (error != null) System.out.println("error: " + error);
+
+    // check result and output
+    Assert.assertEquals(result, ExecutionResult.SUCCESS);
+    reportThings(properties);
+    Assert.assertNull(error);
+    String output = msgCtxt.getVariable("crypto_output");
+    Assert.assertNotNull(output);
+    String key = msgCtxt.getVariable("crypto_output_key");
+    Assert.assertNotNull(key);
+    String iv = msgCtxt.getVariable("crypto_output_iv");
+    Assert.assertNotNull(iv);
+    byte[] keybytes = java.util.Base64.getDecoder().decode(key);
+    Assert.assertEquals(keybytes.length, 16);
+    byte[] ivbytes = java.util.Base64.getDecoder().decode(iv);
+    Assert.assertEquals(ivbytes.length, 16);
   }
 
   @Test()
@@ -624,6 +657,36 @@ public class TestAesCryptoCallout {
     Assert.assertNull(error);
     String output = msgCtxt.getVariable("crypto_output");
     Assert.assertEquals(output, "The quick brown fox jumped over the lazy dog.");
+  }
+
+  @Test()
+  public void AES256_GCM_Decrypt_GenerateKey() {
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put("testname", "AES256_GCM_Decrypt_GenerateKey");
+    properties.put("action", "decrypt");
+    properties.put("generate-key", "true");
+    properties.put("debug", "true");
+    properties.put("source", "ciphertext");
+    properties.put("salt", "{known-variable}");
+    properties.put("mode", "GCM");
+    properties.put("padding", "PKCS5PADDING"); // doesnt matter
+    properties.put("encode-result", "hex");
+    properties.put("utf8-decode-result", "true"); // irrelevant
+
+    msgCtxt.setVariable("ciphertext", "irrelevant");
+    msgCtxt.setVariable("known-variable", "also-irrelevant.");
+
+    AesCryptoCallout callout = new AesCryptoCallout(properties);
+    ExecutionResult result = callout.execute(msgCtxt, exeCtxt);
+
+    // retrieve output
+    String error = msgCtxt.getVariable("crypto_error");
+    if (error != null) System.out.println("error: " + error);
+
+    // check result and output
+    reportThings(properties);
+    Assert.assertEquals(result, ExecutionResult.ABORT);
+    Assert.assertEquals(error, "senseless to generate a key for decryption");
   }
 
   @Test()

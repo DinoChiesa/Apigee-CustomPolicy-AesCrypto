@@ -4,7 +4,7 @@
 
   <groupId>com.google.apigee</groupId>
   <artifactId>edge-callout-aes-crypto</artifactId>
-  <version>20191101</version>
+  <version>20200616</version>
   <name>EdgeCustomEncryptor</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -15,7 +15,7 @@
     <apigee.message.flow.version>1.0.0</apigee.message.flow.version>
     <mockito.all.version>1.10.19</mockito.all.version>
     <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
-    <bouncycastle.version>1.60</bouncycastle.version>
+    <bouncycastle.version>1.64</bouncycastle.version>
     <jmockit.version>1.7</jmockit.version>
     <jdk.target.version>1.8</jdk.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -121,6 +121,7 @@
                     <!-- copy any required dependencies tht are not
                          already included in the Edge runtime: -->
                     <include name="lib/*.jar"/>
+                    <exclude name="lib/bcprov-jdk15on-*.*.jar"/>
                     <exclude name="lib/message-flow-1.0.0.jar"/>
                     <exclude name="lib/expressions-1.0.0.jar"/>
                   </fileset>

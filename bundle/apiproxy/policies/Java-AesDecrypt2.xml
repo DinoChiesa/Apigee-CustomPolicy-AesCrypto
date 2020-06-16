@@ -12,5 +12,5 @@
     <Property name='utf8-decode-result'>true</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://edge-callout-aes-crypto-20191101.jar</ResourceURL>
+  <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
 </JavaCallout>
