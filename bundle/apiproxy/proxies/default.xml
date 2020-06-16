@@ -39,7 +39,7 @@
       </Request>
       <Response>
         <Step>
-          <Name>AM-SuccessEncryptResponse</Name>
+          <Name>AM-SuccessEncryptResponsePBKDF2</Name>
         </Step>
       </Response>
       <Condition>(proxy.pathsuffix MatchesPath "/encrypt1") and (request.verb = "POST")</Condition>
@@ -84,7 +84,7 @@
        -d 'iv=c5b4039aadf01a1da13d04570da45265' \
        -d 'cleartext=Whatever you want to encrypt goes here.'
       -->
-      <Description>encrypt the plaintext payload using a key and IV</Description>
+      <Description>encrypt the plaintext payload using an explicitly-provided key and IV</Description>
       <Request>
         <Step>
           <Name>RF-BadRequest</Name>
@@ -137,8 +137,7 @@
     </Flow>
 
     <Flow name="decrypt 3">
-      <Description>decrypt the plaintext payload using a key and
-      IV</Description>
+      <Description>decrypt the plaintext payload using GCM, with a key, iv, tag, and AAD</Description>
       <!--
 example
 
@@ -172,6 +171,29 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt3 \
         </Step>
       </Response>
       <Condition>(proxy.pathsuffix MatchesPath "/decrypt3") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name="encrypt 4">
+      <!--
+      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt4 \
+       -d 'cleartext=Whatever you want to encrypt goes here.'
+      -->
+      <Description>encrypt the plaintext payload using a generated key and IV</Description>
+      <Request>
+        <Step>
+          <Name>Java-AesEncrypt4</Name>
+        </Step>
+        <Step>
+          <Name>RF-CryptoError</Name>
+          <Condition>crypto_error != null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SuccessEncryptResponse</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/encrypt4") and (request.verb = "POST")</Condition>
     </Flow>
 
     <Flow name='unknown'>

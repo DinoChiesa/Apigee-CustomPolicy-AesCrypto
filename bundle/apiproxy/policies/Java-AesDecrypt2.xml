@@ -3,11 +3,11 @@
     <Property name='action'>decrypt</Property>
     <Property name='debug'>true</Property>
     <Property name='source'>request.formparam.ciphertext</Property>
-    <Property name='decode-source'>base64</Property>
+    <Property name='decode-source'>{request.formparam.source_decoding:base64}</Property>
     <Property name='key'>{request.formparam.key}</Property>
-    <Property name='decode-key'>hex</Property>
+    <Property name='decode-key'>{request.formparam.key_decoding:base16}</Property>
     <Property name='iv'>{request.formparam.iv}</Property>
-    <Property name='decode-iv'>hex</Property>
+    <Property name='decode-iv'>{request.formparam.iv_decoding:base16}</Property>
     <Property name='salt'>{request.formparam.salt:IloveAPIs2018}</Property>
     <Property name='utf8-decode-result'>true</Property>
   </Properties>

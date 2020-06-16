@@ -1,4 +1,4 @@
-<AssignMessage name='AM-SuccessEncryptResponse'>
+<AssignMessage name='AM-SuccessEncryptResponsePBKDF2'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <Remove><Headers/></Remove>
   <Set>
@@ -6,17 +6,20 @@
   "ciphertext": "{crypto_output}",
   "encoding" : "{crypto_output_encoding}",
   "cipher": "{crypto_cipher}",
+  "pbkdf2_iterations": "{crypto_pbkdf2_iterations:--}",
   "params" : {
     "b16" : {
+      "salt": "{crypto_salt_b16:--}",
       "key": "{crypto_key_b16}",
       "iv": "{crypto_iv_b16}"
     },
     "b64" : {
+      "salt": "{crypto_salt_b64:--}",
       "key": "{crypto_key_b64}",
       "iv": "{crypto_iv_b64}"
     }
   },
-  "note": "To decrypt, you must pass the ciphertext, and a key and an IV."
+  "note": "To decrypt, you must pass the ciphertext, and a key and an IV. The latter two can be: either provided directly, or derived from a passphrase and salt via PBKDF2, with the number of iterations."
 }
 </Payload>
     <StatusCode>200</StatusCode>

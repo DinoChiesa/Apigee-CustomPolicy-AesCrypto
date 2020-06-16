@@ -1,0 +1,12 @@
+<JavaCallout name="Java-AesEncrypt4">
+  <Properties>
+    <Property name='action'>encrypt</Property>
+    <Property name='debug'>true</Property>
+    <Property name='source'>request.formparam.cleartext</Property>
+    <Property name='generate-key'>true</Property>
+    <Property name='salt'>{request.formparam.salt:IloveAPIs2018}</Property>
+    <Property name='encode-result'>base64url</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
+  <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+</JavaCallout>
