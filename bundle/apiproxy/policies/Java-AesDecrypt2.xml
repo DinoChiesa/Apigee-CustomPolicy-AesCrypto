@@ -11,6 +11,6 @@
     <Property name='salt'>{request.formparam.salt:IloveAPIs2018}</Property>
     <Property name='utf8-decode-result'>true</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+  <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+  <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
 </JavaCallout>

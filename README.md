@@ -1,11 +1,11 @@
 # AES Crypto callout
 
-This directory contains the Java source code for a Java callout for Apigee Edge
+This directory contains the Java source code for a Java callout for Apigee
 that performs AES Encryption and Decryption of data or message payloads.
 
 ## License
 
-This code is Copyright (c) 2017-2020 Google LLC, and is released under the
+This code is Copyright (c) 2017-2021 Google LLC, and is released under the
 Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
 
 ## Disclaimer
@@ -78,8 +78,8 @@ for AES is always 128 bits; that is the block length of AES.
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -112,8 +112,8 @@ and IV. And then the same AES mode, which here has defaulted to CBC.
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -172,8 +172,8 @@ These are the properties available on the policy:
       <Property name='decode-iv'>hex</Property>
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -201,8 +201,8 @@ What will this policy configuration do?
       <Property name='mode'>CFB</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -235,8 +235,8 @@ Here's what will happen with this configuration:
       <Property name='mode'>CFB</Property>
       <Property name='encode-result'>base64</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros.
@@ -263,8 +263,8 @@ For this you must specify an `aad`, and a `tag`, along with a `key` and `iv`.
       <Property name="decode-tag">base64url</Property>
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
-    <ClassName>com.google.apigee.edgecallouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://edge-callout-aes-crypto-20200616.jar</ResourceURL>
+    <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -389,7 +389,7 @@ To build: `mvn clean package`
 The Jar source code includes tests.
 
 If you edit policies offline, copy [the jar file for the custom
-policy](callout/target/edge-callout-aes-crypto-20200616.jar) to your
+policy](callout/target/apigee-callout-aes-crypto-20210409.jar) to your
 apiproxy/resources/java directory.  If you don't edit proxy bundles offline,
 upload that jar file into the API Proxy via the Edge API Proxy Editor .
 

@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.google.apigee</groupId>
-  <artifactId>edge-callout-aes-crypto</artifactId>
-  <version>20200616</version>
-  <name>EdgeCustomEncryptor</name>
+  <artifactId>apigee-callout-aes-crypto</artifactId>
+  <version>20210409</version>
+  <name>ApigeeCustomEncryptor</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
 
@@ -149,7 +149,7 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>3.0.5</version>
+                  <version>3.5.0</version>
                 </requireMavenVersion>
               </rules>
             </configuration>

@@ -3,7 +3,7 @@
 // Test code for the AES Crypto custom policy for Apigee Edge. Uses TestNG.
 // For full details see the Readme accompanying this source file.
 //
-// Copyright (c) 2016 Apigee Corp, 2017-2020 Google LLC
+// Copyright (c) 2016 Apigee Corp, 2017-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,12 +35,11 @@
 // In that JDK, there's no restriction on key strength.
 //
 
-package com.google.apigee.edgecalluts.testng.tests;
+package com.google.apigee.callouts;
 
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.message.MessageContext;
-import com.google.apigee.edgecallouts.AesCryptoCallout;
 import java.util.HashMap;
 import java.util.Map;
 import mockit.Mock;
