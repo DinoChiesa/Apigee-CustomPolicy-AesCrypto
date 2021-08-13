@@ -15,7 +15,7 @@
     <apigee.message.flow.version>1.0.0</apigee.message.flow.version>
     <mockito.all.version>1.10.19</mockito.all.version>
     <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
-    <bouncycastle.version>1.64</bouncycastle.version>
+    <bouncycastle.version>1.67</bouncycastle.version>
     <jmockit.version>1.7</jmockit.version>
     <jdk.target.version>1.8</jdk.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
