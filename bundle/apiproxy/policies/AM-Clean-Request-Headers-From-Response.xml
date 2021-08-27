@@ -5,7 +5,6 @@
       <Header name='Accept'/>
       <Header name='user-agent'/>
       <Header name='X-Request-id'/>
-      <Header name='x-request-id'/> <!-- why both? -->
       <Header name='x-client-data'/>
       <Header name='x-cloud-trace-context'/>
       <Header name='X-Powered-By'/>
