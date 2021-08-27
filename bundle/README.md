@@ -12,8 +12,13 @@ Import and deploy the Proxy to your favorite Edge organization + environment.
 To encrypt data using a passphrase, invoke the proxy like so:
 
 ```
+# For Apigee Edge
+endpoint=https://$ORG-$ENV.apigee.net
+# For Apigee X or hybrid
+endpoint=https://my-custom-domain.com
+
 curl -i -H 'content-type: text/plain' -X POST \
- "https://$ORG-$ENV.apigee.net/aes-crypto/encrypt1?passphrase=Secret123" \
+ "$endpoint/aes-crypto/encrypt1?passphrase=Secret123" \
  -d 'The quick brown fox jumped over the lazy dog.'
 ```
 
@@ -24,7 +29,7 @@ To decrypt data using a passphrase, invoke the proxy like so:
 
 ```
 curl -i -H 'content-type: text/plain' -X POST \
- "https://$ORG-$ENV.apigee.net/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
+ "$endpoint/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
  -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
 ```
 
@@ -35,7 +40,8 @@ Again, the above generates the appropriate key and IV from the passphrase and sa
 To encrypt data using a key and IV that you provide, invoke the proxy like so:
 
 ```
-curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt2 \
+curl -i -X POST \
+  $endpoint/aes-crypto/encrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
  -d 'cleartext=Whatever you want to encrypt goes here.'
@@ -47,11 +53,12 @@ octet stream of 16 bytes that you like.
 To decrypt:
 
 ```
-curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
+curl -i -X POST \
+  $endpoint/aes-crypto/decrypt2 \
  -d 'key=2391652f01a99021d63789256e5d3d30' \
  -d 'iv=c5b4039aadf01a1da13d04570da45265' \
  -d 'source_decoding=base64url' \
- -d 'ciphertext=cjJTqwvqlKDnX-gOSGLbVNMMKhJkD6MxfSYu7warI49Xdk17mF0ps8qfp12Xj49konM1YL5K9JC2pD3LiCHkbOpvMmnN1Rm1dgzLbSeysAPtV4FRqlX6SvTv1-7ToMeBhTVf7u5XW607umfVauUCvwqar9C7mLB4ivqW0p4RJjW5XDQzmHPI7JtO0rILsJlnXficbHsv3sh1ShR6YshgKg'
+ --data-urlencode 'ciphertext=i7UHQHaoqp3Kgy5XprRF8s/LLFGRQa+j+PsH5HAntq7sgi01nd5rX81vkIp0K0TEWEvKBusnHA+FOOOnZUE0D/WNEgaZKCc8Vcr/w89iwFURv19Jzlfo3jh850sk41EgO8Z30UoE2sT7XPaBvfYLLXfmFT6/8G78l+ju4Pph+wNjWPUz4wdyMoF9AaBnzPJYL+Sc88Vn6dsQ0gs8x7JZzCVcnyK2rkjk9SRQxYt/48qHOnvXQOxWZkc7cJ+MWtKE'
 ```
 
 ## Encrypt with a generated key and IV, and then Decrypt with same
@@ -59,7 +66,8 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
 To encrypt data using a generated key and IV, invoke the proxy like so:
 
 ```
-curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt4 \
+curl -i -X POST \
+  $endpoint/aes-crypto/encrypt4 \
  -d 'cleartext=Whatever you want to encrypt goes here.'
 ```
 
@@ -68,7 +76,8 @@ This API will emit the ciphertext along with the generated key and IV.
 To decrypt:
 
 ```
-curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
+curl -i -X POST \
+  $endpoint/aes-crypto/decrypt2 \
  -d 'key=KEY_FROM_OUTPUT' \
  -d 'iv=IV_FROM_OUTPUT' \
  -d 'source_decoding=base64url' \

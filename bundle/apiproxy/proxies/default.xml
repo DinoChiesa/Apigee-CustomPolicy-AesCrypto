@@ -9,18 +9,33 @@
   </HTTPProxyConnection>
 
   <FaultRules/>
+<DefaultFaultRule name="default-fault-rule">
+  <Step>
+    <Name>AM-Inject-Proxy-Revision-Header</Name>
+  </Step>
+  <AlwaysEnforce>true</AlwaysEnforce>
+</DefaultFaultRule>
 
   <PreFlow>
     <Request>
     </Request>
+    <Response>
+      <Step>
+        <Name>AM-Clean-Request-Headers-From-Response</Name>
+      </Step>
+      <Step>
+        <Name>AM-Inject-Proxy-Revision-Header</Name>
+      </Step>
+    </Response>
   </PreFlow>
 
   <Flows>
 
     <Flow name="encrypt 1">
       <!--
+      endpoint=https://$ORG-$ENV.apigee.net
       curl -i -H 'content-type: text/plain' -X POST \
-       "https://$ORG-$ENV.apigee.net/aes-crypto/encrypt1?passphrase=Secret123" \
+       "$endpoint/aes-crypto/encrypt1?passphrase=Secret123" \
        -d 'The quick brown fox jumped over the lazy dog.'
       -->
       <Description>encrypt the plaintext payload using a passphrase</Description>
@@ -48,7 +63,7 @@
     <Flow name="decrypt 1">
       <!--
       curl -i -H 'content-type: text/plain' -X POST \
-        "https://$ORG-$ENV.apigee.net/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
+        "$endpoint/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
        -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
       -->
       <Description>decrypt the plaintext payload using a passphrase</Description>
@@ -79,7 +94,8 @@
 
     <Flow name="encrypt 2">
       <!--
-      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt2 \
+      curl -i -X POST \
+       $endpoint/aes-crypto/encrypt2 \
        -d 'key=2391652f01a99021d63789256e5d3d30' \
        -d 'iv=c5b4039aadf01a1da13d04570da45265' \
        -d 'cleartext=Whatever you want to encrypt goes here.'
@@ -108,7 +124,8 @@
 
     <Flow name="decrypt 2">
       <!--
-      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt2 \
+      curl -i -X POST \
+        $endpoint/aes-crypto/decrypt2 \
        -d 'key=2391652f01a99021d63789256e5d3d30' \
        -d 'iv=c5b4039aadf01a1da13d04570da45265' \
        -d 'source_decoding=base64' \
@@ -175,7 +192,7 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt3 \
 
     <Flow name="encrypt 4">
       <!--
-      curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/encrypt4 \
+      curl -i -X POST $endpoint/aes-crypto/encrypt4 \
        -d 'cleartext=Whatever you want to encrypt goes here.'
       -->
       <Description>encrypt the plaintext payload using a generated key and IV</Description>

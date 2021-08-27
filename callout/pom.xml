@@ -112,6 +112,19 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
+            <id>ant1</id>
+            <phase>clean</phase>
+            <configuration>
+              <tasks>
+                <delete>
+                  <fileset dir="${apiproxy.java.rsrc.dir}"
+                           includes="*.jar" />
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant2</id>
             <phase>package</phase>
             <configuration>
               <tasks>

@@ -1,6 +1,5 @@
 <AssignMessage name='AM-SuccessEncryptResponsePBKDF2'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
-  <Remove><Headers/></Remove>
   <Set>
     <Payload contentType='application/json'>{
   "ciphertext": "{crypto_output}",
