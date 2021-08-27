@@ -64,7 +64,7 @@
       <!--
       curl -i -H 'content-type: text/plain' -X POST \
         "$endpoint/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
-       -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
+       ==data-urlencode 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
       -->
       <Description>decrypt the plaintext payload using a passphrase</Description>
       <Request>
@@ -129,7 +129,7 @@
        -d 'key=2391652f01a99021d63789256e5d3d30' \
        -d 'iv=c5b4039aadf01a1da13d04570da45265' \
        -d 'source_decoding=base64' \
-       -d 'ciphertext=cjJTqwvqlKDnX-gOSGLbVNMMKhJkD6MxfSYu7warI49Xdk17mF0ps8qfp12Xj49konM1YL5K9JC2pD3LiCHkbOpvMmnN1Rm1dgzLbSeysAPtV4FRqlX6SvTv1-7ToMeBhTVf7u5XW607umfVauUCvwqar9C7mLB4ivqW0p4RJjW5XDQzmHPI7JtO0rILsJlnXficbHsv3sh1ShR6YshgKg'
+       ==data-urlencode 'ciphertext=cjJTqwvqlKDnX-gOSGLbVNMMKhJkD6MxfSYu7warI49Xdk17mF0ps8qfp12Xj49konM1YL5K9JC2pD3LiCHkbOpvMmnN1Rm1dgzLbSeysAPtV4FRqlX6SvTv1-7ToMeBhTVf7u5XW607umfVauUCvwqar9C7mLB4ivqW0p4RJjW5XDQzmHPI7JtO0rILsJlnXficbHsv3sh1ShR6YshgKg'
       -->
       <Description>decrypt the plaintext payload using a key and IV</Description>
       <Request>
@@ -162,8 +162,8 @@ curl -i -X POST https://$ORG-$ENV.apigee.net/aes-crypto/decrypt3 \
  -d 'key=385f9fd4cba017c159956276036545b0' \
  -d 'iv=mRqogt0pxtPdgyjt' \
  -d 'tag=ESdhCa_eqd2FaI5e5IH2xQ' \
- -d 'aad=eyJ0eXAiOiJKV1QiLCJoZHIxIjoxMjMsImVuYyI6IkExMjhHQ00iLCJoZHIyIjp0cnVlLCJhbGciOiJSU0EtT0FFUC0yNTYifQ' \
- -d 'ciphertext=73XlhsvhcsaIFJUrqZFyf0Hjgxx9A-rbPWoIdsup-ScsXuqO6RevhNdjBg'
+ ==data-urlencode 'aad=eyJ0eXAiOiJKV1QiLCJoZHIxIjoxMjMsImVuYyI6IkExMjhHQ00iLCJoZHIyIjp0cnVlLCJhbGciOiJSU0EtT0FFUC0yNTYifQ' \
+ ==data-urlencode 'ciphertext=73XlhsvhcsaIFJUrqZFyf0Hjgxx9A-rbPWoIdsup-ScsXuqO6RevhNdjBg'
 
       -->
       <Request>

@@ -22,18 +22,20 @@ curl -i -H 'content-type: text/plain' -X POST \
  -d 'The quick brown fox jumped over the lazy dog.'
 ```
 
-This generates a key and IV from the passphrase, using a default number of iterations in PBKDF2. It uses the default salt, which is "Apigee-IloveAPIs". It then applies these values to the AES algorithm to encrypt the payload.
-
+This generates a key and IV from the passphrase, using a default number of
+iterations in PBKDF2. It uses the default salt, which is "Apigee-IloveAPIs". It
+then applies these values to the AES algorithm to encrypt the payload.
 
 To decrypt data using a passphrase, invoke the proxy like so:
 
 ```
 curl -i -H 'content-type: text/plain' -X POST \
  "$endpoint/aes-crypto/decrypt1?passphrase=Secret123&source_encoding=base64" \
- -d 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
+ --data-urlencode 'rZjFqahLBx/RdlqkNv8QpryerhWBnUaVOfi1MzTd6MSZFGLBGLF0+TGvppIcYTSL'
 ```
 
-Again, the above generates the appropriate key and IV from the passphrase and salt, then uses those to decrypt.
+Again, the above generates the appropriate key and IV from the passphrase and
+salt, then uses those to decrypt.
 
 ## Encrypt and Decrypt with an Explicitly-provided Key and IV
 
@@ -81,7 +83,7 @@ curl -i -X POST \
  -d 'key=KEY_FROM_OUTPUT' \
  -d 'iv=IV_FROM_OUTPUT' \
  -d 'source_decoding=base64url' \
- -d 'ciphertext=CIPHERTEXT_FROM_OUTPUT'
+ --data-urlencode 'ciphertext=CIPHERTEXT_FROM_OUTPUT'
 ```
 
 ## Bugs
