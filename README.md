@@ -121,9 +121,9 @@ What will this policy configuration do?:
 
 * the `action` is decrypt, so the policy will decrypt
 * No `source` property is specified, therefore this policy will decrypt the message.content.
-* Because there is a `decode-source` property, 'base64', the policy will base64-decode the message.content to derive the cipher text.
+* Because there is a `decode-source` property, 'base64', the policy will base64-decode the `message.content` to derive the cipher text.
 * Specifying the `passphrase` tells the policy to derive a key and IV using PBKDF2, with the defaults for iterations and salt the same as in the prior example.
-* There is no `mode` or `padding` specified, so the policy will use AES/CBC/PKCS5Padding.
+* There is no `mode` or `padding` specified, so the policy will use `CBC` and `PKCS5Padding`.
 * The policy decodes the result via UTF-8 to produce a plain string. Obviously, this will work only if the original clear text was a plain string!
 
 
@@ -133,26 +133,26 @@ These are the properties available on the policy:
 
 | Property          | Description                                                                                                                                       |
 |-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| action            | required. either "decrypt" or "encrypt".                                                                                                          |
-| key               | optional. the cipher key. Can be 128 bits, 192 bits, or 256 bits. if not specified, must use passphrase.                                          |
-| iv                | optional. the cipher initialization vector. Required if key is specified. Should be 128 bits.                                                     |
+| action            | required. either `decrypt` or `encrypt`.                                                                                                          |
+| key               | optional. the cipher key, of length 128 bits, 192 bits, or 256 bits. If not specified, must specify the `passphrase` property.                    |
+| iv                | optional. the cipher initialization vector. Required if key is specified. Should be 128 bits in length.                                           |
 | generate-key      | optional. Boolean. If true, the policy will generate a key and IV and emit them as context variables (encoded). Not used if the key is specified. Sensible only if action=encrypt. |
-| decode-key        | optional. One of: {base64, base64url, base16, none}.                                                                                              |
-| decode-iv         | optional. One of: {base64, base64url, base16, none}.                                                                                              |
+| decode-key        | optional. One of: {`base64`, `base64url`, `base16`, `none`}.                                                                                      |
+| decode-iv         | optional. One of: {`base64`, `base64url`, `base16`, `none`}.                                                                                      |
 | passphrase        | optional. a passphrase to use, for deriving the key + IV via PBKDF2. Not used if key is specified.                                                |
 | pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt)) Used only with passphrase.       |
-| salt              | optional. salt used for the PBKDF2. Used only when passphrase is specified.                                                                       |
-| key-strength      | optional. the strength of the key to derive. Applies only when passphrase is used. Defaults to 128 bits.                                          |
+| salt              | optional. salt used for the PBKDF2. Used only when `passphrase` is specified. Defaults to "Apigee-IloveAPIs" if not specified.                    |
+| key-strength      | optional. the strength of the key to derive. Applies only when passphrase is present. Defaults to 128 bits.                                       |
 | source            | optional. name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. Defaults to `message.content`. |
-| decode-source     | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                   |
-| mode              | optional. CBC, CFB, OFB, or GCM. Defaults to CBC.                                                                                                 |
-| padding           | optional. either PKCS5Padding or NoPadding. If NoPadding is used the input must be a multiple of 8 bytes in length.                               |
+| decode-source     | optional. One of: {`base64`, `base64url`, `base16`, `none`}, to decode from a string to a octet stream.                                           |
+| mode              | optional. `CBC`, `CFB`, `OFB`, or `GCM`. Defaults to `CBC`.                                                                                       |
+| padding           | optional. either `PKCS5Padding` or `NoPadding`. If the value is `NoPadding`, the input must be a multiple of 8 bytes in length.                   |
 | aad               | optional. optional. Used only when mode=GCM. The "Additional Authenticated Data". Must specify this for encrypt or decrypt.                       |
-| decode-aad        | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                   |
+| decode-aad        | optional. One of: {`base64`, `base64url`, `base16`, `none`}, to decode from a string to a octet stream.                                           |
 | tag               | optional. optional. Used only when mode=GCM, and action=decrypt. The authentication tag emitted during encryption.                                |
-| decode-tag        | optional. One of: {base64, base64url, base16, none}, to decode from a string to a octet stream.                                                   |
-| output            | optional. name of the variable in which to store the output. Defaults to crypto_output.                                                           |
-| encode-result     | optional. One of: {base64, base64url, base16}. The default is to not encode the result.                                                           |
+| decode-tag        | optional. One of: {`base64`, `base64url`, `base16`, `none`}, to decode from a string to a octet stream.                                           |
+| output            | optional. name of the variable in which to store the output. Defaults to `crypto_output`.                                                         |
+| encode-result     | optional. One of: {`base64`, `base64url`, `base16`}. The default is to not encode the result.                                                           |
 | utf8-decode-result| optional. true or false. Applies only when action = decrypt. Decodes the byte[] array into a UTF-8 string.                                        |
 | debug             | optional. true or false. Emits extra context variables if true. Not for use in production.                                                        |
 
@@ -183,7 +183,7 @@ What will this policy configuration do?
 * The `source` property is specified, therefore this policy will decrypt the value found in the context variable "ciphertext".
 * Because there is a `decode-source` property, the policy will base64-decode the value of "ciphertext" to derive the actual byte array for the ciphertext.
 * Specifying the `key` and `iv`, rather than a `passphrase` means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on `decode-hex` and `decode-iv`.
-* no `mode` or `padding` specified, so `AES/CBC/PKCS5Padding` is used.
+* no `mode` or `padding` specified, so the policy uses `AES/CBC/PKCS5Padding`.
 * The callout decodes the result via UTF-8 to produce a plain string. Of course, This will work only if the original clear text was a plain string!
 * Because there is no `output` property specified, the callout places the result by default into the variable `crypto_output`.
 
