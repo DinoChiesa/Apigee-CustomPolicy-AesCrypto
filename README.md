@@ -85,14 +85,14 @@ for AES is always 128 bits; that is the block length of AES.
 
 Here's what will happen with this policy configuration:
 
-* the action is encrypt, so the policy will encrypt
-* No source property is specified, therefore this policy will encrypt the message.content.
+* the `action` is encrypt, so the policy will encrypt
+* No `source` property is specified, therefore this policy will encrypt the message.content.
 * Specifying the `passphrase` means that a key and IV will be derived using PBKDF2.
 * There is no `pbkdf2-iterations` property, so the policy will use its default value of 128001 iterations.
 * There is no `salt` specified, so the policy uses its default of "Apigee-IloveAPIs".
 * There's no `key-strength` property, so the default of 128 bits applies.
-* There is no mode specified, so the policy uses CBC.
-* There is no padding specified, so the policy uses PKCS5Padding.
+* There is no `mode` specified, so the policy uses `CBC`.
+* There is no `padding` specified, so the policy uses `PKCS5Padding`.
 * The policy encode the resulting cihertext via base64 and places it into `crypto_output`.
 
 To decrypt the result of that, either within Apigee Edge with this policy, or
@@ -119,7 +119,7 @@ and IV. And then the same AES mode, which here has defaulted to CBC.
 
 What will this policy configuration do?:
 
-* the action is decrypt, so the policy will decrypt
+* the `action` is decrypt, so the policy will decrypt
 * No `source` property is specified, therefore this policy will decrypt the message.content.
 * Because there is a `decode-source` property, 'base64', the policy will base64-decode the message.content to derive the cipher text.
 * Specifying the `passphrase` tells the policy to derive a key and IV using PBKDF2, with the defaults for iterations and salt the same as in the prior example.
@@ -179,11 +179,11 @@ These are the properties available on the policy:
 
 What will this policy configuration do?
 
-* the action tells the policy to decrypt
-* The source property is specified, therefore this policy will decrypt the value found in the context variable "ciphertext".
+* the `action` tells the policy to decrypt
+* The `source` property is specified, therefore this policy will decrypt the value found in the context variable "ciphertext".
 * Because there is a `decode-source` property, the policy will base64-decode the value of "ciphertext" to derive the actual byte array for the ciphertext.
-* Specifying the key and iv, rather than a passphrase means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on decode-hex and decode-iv.
-* no mode or padding specified, so `AES/CBC/PKCS5Padding` is used.
+* Specifying the `key` and `iv`, rather than a `passphrase` means that the policy will use these data directly. There is no PBKDF2 iteration. The key and the iv are both passed as hex-encoded strings, and the policy decodes them accordingly, based on `decode-hex` and `decode-iv`.
+* no `mode` or `padding` specified, so `AES/CBC/PKCS5Padding` is used.
 * The callout decodes the result via UTF-8 to produce a plain string. Of course, This will work only if the original clear text was a plain string!
 * Because there is no `output` property specified, the callout places the result by default into the variable `crypto_output`.
 
@@ -209,14 +209,14 @@ What will this policy configuration do?
 
 Here's what will happen with this configuration:
 
-* The action tells the policy to encrypt
+* The `action` tells the policy to encrypt
 * No `source` property is specified in the configuration, therefore the policy will encrypt the message.content.
-* Specifying the `passphrase` tells the policy to derive  a key and IV from the passphrase using PBKDF2.
+* Specifying the `passphrase` tells the policy to derive a key and IV from the passphrase using PBKDF2.
 * The PBKDF2 logic will use 65000 and VarietyIsTheSpiceOfLife for pbkdf2-iterations and salt. The Salt will be the bytes resulting from UTF-8 encoding the salt string. Only the first 128 bits of salt are used!
 * a key-strength of 256 bits will be used.
-* The AES mode will be CFB.
-* There is no padding specified, so the policy uses PKCS5Padding.
-* The policy encodes resulting ciphertext byte array into a string via base64.
+* The `mode` property tells the policy to use the AES mode `CFB`.
+* There is no `padding` specified, so the policy uses `PKCS5Padding`.
+* Because of the `encode-result` property, the policy encodes resulting ciphertext byte array into a string via base64.
 * Because there is no `output` property specified, the callout places the result by default into the variable `crypto_output`.
 
 
