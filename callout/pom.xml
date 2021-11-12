@@ -29,6 +29,33 @@
       <version>${bouncycastle.version}</version>
     </dependency>
 
+<!--
+
+The following 2 jar dependencies from Apigee are not avaiable in any
+public repo. You can install them in your machine-local repo (The .m2
+cache) to get this pom.xml to build successfully.
+
+Run the  buildsetup.sh script to do this, or
+
+do it manually by running these commands:
+
+  mvn install:install-file \
+   -Dfile=/Path/To/expressions-1.0.0.jar \
+   -DgroupId=com.apigee.edge \
+   -DartifactId=expressions \
+   -Dversion=1.0.0 \
+   -Dpackaging=jar \
+   -DgeneratePom=true
+
+  mvn install:install-file \
+   -Dfile=/Path/To/message-flow-1.0.0.jar \
+   -DgroupId=com.apigee.edge \
+   -DartifactId=message-flow \
+   -Dversion=1.0.0 \
+   -Dpackaging=jar \
+   -DgeneratePom=true
+-->
+
     <dependency>
       <groupId>com.apigee.edge</groupId>
       <artifactId>message-flow</artifactId>
