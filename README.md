@@ -53,19 +53,29 @@ cryptographically strong key from a text password.
 
 This custom policy can derive a key and optionally, an IV, from a passphrase using PBKDF2.
 
-PBKDF2 requires a passphrase, a salt, a key strength, and a number of
-iterations. When configuring this policy to use PBKDF2, you must specify a
-passphrase. You may explicitly specify a salt, a desired output key strength in
-bits, and a number of iterations. The policy defaults those settings to the
-UTF-8 bytes for "Apigee-IloveAPIs", 128, and 128001, respectively, when they are
+PBKDF2 requires as input:
+- a passphrase,
+- a salt,
+- a key strength,
+- a number of iterations, and
+- a pseudo-random function (PRF).  This is usually a keyed MAC, aka HMAC.
+
+This callout supports `HMAC-SHA1` and `HMAC-SHA256` as the PRF. The maximum number of iterations is 2560000.
+
+When configuring this policy to use PBKDF2, you must specify a
+passphrase. You may optionally specify a salt, a desired output key strength in
+bits, a number of iterations, and/or a PRF. The policy defaults those settings to the
+UTF-8 bytes for "Apigee-IloveAPIs", 128, 128001, and HMAC-SHA1, respectively, when they are
 not specified.
 
 Via the configuration, you can configure the policy to derive just a key, or
-both a key and IV.  The key is taken from the first N bits, where N may be 128,
+both a key and IV. The key is taken from the first N bits, where N may be 128,
 192, or 256 as specified by the configurator. For 128 bits, it means the key
 will be an octet stream of length 16. If an IV is also needed, the policy will
 take the next 128 bits from the output of the PBKDF2 as the random IV. The IV
 for AES is always 128 bits; that is the block length of AES.
+
+To tell the policy to generate the key and use a static IV, specify the iv explicitly.
 
 
 ## Example: Basic Encryption with a Passphrase, and Numerous Defaults
@@ -79,7 +89,7 @@ for AES is always 128 bits; that is the block length of AES.
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -113,7 +123,7 @@ and IV. And then the same AES mode, which here has defaulted to CBC.
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -141,6 +151,7 @@ These are the properties available on the policy:
 | decode-iv         | optional. One of: {`base64`, `base64url`, `base16`, `none`}.                                                                                      |
 | passphrase        | optional. a passphrase to use, for deriving the key + IV via PBKDF2. Not used if key is specified.                                                |
 | pbkdf2-iterations | optional. the number of iterations to use in PBKDF2. (See [IETF RFC 2898](https://www.ietf.org/rfc/rfc2898.txt)) Used only with passphrase.       |
+| pbkdf2-prf        | optional. PRF used for the PBKDF2. either `HMAC-SHA1` or `HMAC-SHA256`. Defaults to `HMAC-SHA1`.                                                  |
 | salt              | optional. salt used for the PBKDF2. Used only when `passphrase` is specified. Defaults to "Apigee-IloveAPIs" if not specified.                    |
 | key-strength      | optional. the strength of the key to derive. Applies only when passphrase is present. Defaults to 128 bits.                                       |
 | source            | optional. name of the context variable containing the data to encrypt or decrypt. Do not surround in curly braces. Defaults to `message.content`. |
@@ -173,7 +184,7 @@ These are the properties available on the policy:
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -203,7 +214,7 @@ What will this policy configuration do?
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -220,7 +231,7 @@ Here's what will happen with this configuration:
 * Because there is no `output` property specified, the callout places the result by default into the variable `crypto_output`.
 
 
-## Example: 256-bit AES(CFB) Encryption with a Passphrase, and a specific IV
+## Example: 256-bit AES(CFB) Encryption with a key derived from a specific Passphrase, and a specific IV
 
   ```xml
   <JavaCallout name="Java-AesEncrypt1">
@@ -229,6 +240,7 @@ Here's what will happen with this configuration:
       <Property name='debug'>true</Property>
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='pbkdf2-iterations'>65000</Property>
+      <Property name='pbkdf2-prf>HMAC-SHA256</Property>
       <Property name='salt'>VarietyIsTheSpiceOfLife</Property>
       <Property name='key-strength'>256</Property>
       <Property name='iv'>00000000000000000000000000000000</Property>
@@ -237,10 +249,13 @@ Here's what will happen with this configuration:
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
-This policy works like the prior example, except, rather than deriving both the key and IV, the policy derives just the key using PBKDF2. The IV is always set to a stream of 16 zeros.
+
+This policy works like the prior example, except, rather than deriving both the
+key and IV, the policy derives just the key using PBKDF2, and uses HMAC-SHA256
+for the PRF when deriving the key. The IV is always set to a stream of 16 zeros.
 
 ## Example: 128-bit AES GCM decyption
 
@@ -265,7 +280,7 @@ For this you must specify an `aad`, and a `tag`, along with a `key` and `iv`.
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -390,7 +405,7 @@ To build: `mvn clean package`
 The Jar source code includes tests.
 
 If you edit policies offline, copy [the jar file for the custom
-policy](callout/target/apigee-callout-aes-crypto-20210409.jar) to your
+policy](callout/target/apigee-callout-aes-crypto-20211122.jar) to your
 apiproxy/resources/java directory.  If you don't edit proxy bundles offline,
 upload that jar file into the API Proxy via the Edge API Proxy Editor .
 

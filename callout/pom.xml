@@ -4,7 +4,7 @@
 
   <groupId>com.google.apigee</groupId>
   <artifactId>apigee-callout-aes-crypto</artifactId>
-  <version>20210409</version>
+  <version>20211122</version>
   <name>ApigeeCustomEncryptor</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>

@@ -6,5 +6,5 @@
     <Property name='encode-result'>base64</Property>
   </Properties>
   <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-  <ResourceURL>java://apigee-callout-aes-crypto-20210409.jar</ResourceURL>
+  <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
 </JavaCallout>
