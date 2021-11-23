@@ -44,42 +44,98 @@ PBKDF2 requires as input:
 - a number of iterations, and
 - a pseudo-random function (PRF).  This is usually a keyed MAC, aka HMAC.
 
-When using the PBKDF2 policy, you must specify all of those settings. There are no defaults.
+When using the PBKDF2 policy, you must specify all of those inputs
+explicitly. There are no defaults. Some additional information:
 
-The policy emits the output into variables: `pbkdf2_output_b16`, `pbkdf2_output_b64`, and `pbkdf2_output_b64url` for the base16, base64 and base64url-encoded versions of the result.
+- the policy decodes the salt value via UTF-8 by default. Specify `decode-salt` as one of
+  {`base16`, `base64` or `base64url`} to tell the policy to decode the salt
+  differently.
+- The output key length must be no more than 4096 bytes.
+- The maximum number of iterations is 2560000. Using a large value for iteration count will result in
+significant computation time, at runtime.
+- This policy supports `HMAC-SHA1` and `HMAC-SHA256` as the PRF.
+
+
+The policy emits the output, a passphrase-derived key, into variables:
+`pbkdf2_output_b16`, `pbkdf2_output_b64`, and `pbkdf2_output_b64url` for the
+base16, base64 and base64url-encoded versions of the result, respectively. They
+all represent the same value; a byte array of length `dklen`. They are simply
+encoded differently.
 
 ## Example PBKDF2
 
-  ```xml
-  <JavaCallout name="Java-PBKDF2">
-    <Properties>
-      <Property name='passphrase'>Melo_123</Property>
-      <Property name='iterations'>30000</Property>
-      <Property name='dklen'>32</Property>
-      <Property name='salt'>TSKRGzW5dWMC</Property>
-      <Property name='prf'>HMAC-SHA256</Property>
-    </Properties>
-    <ClassName>com.google.apigee.callouts.PBKDF2</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
-  </JavaCallout>
-  ```
-
-After this policy runs, the context variable `pbkdf2_output_b64` will contain `efWe1q58Y62aLWyvn7MpNlI4bDWPQHK2yUg+jxPMsKQ=`.
-
-If you also set
-```
-      <Property name='expected'>{variable-containing-expected-value}</Property>
-```
-...the policy will check the computed value against your expected value.
-
-In this case, if you also set
-```
-      <Property name='raise-fault-on-no-match'>true</Property>
+```xml
+<JavaCallout name="Java-PBKDF2">
+  <Properties>
+    <Property name='passphrase'>Melo_123</Property>
+    <Property name='iterations'>30000</Property>
+    <Property name='dklen'>32</Property>
+    <Property name='salt'>TSKRGzW5dWMC</Property>
+    <Property name='prf'>HMAC-SHA256</Property>
+  </Properties>
+  <ClassName>com.google.apigee.callouts.PBKDF2</ClassName>
+  <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
+</JavaCallout>
 ```
 
-...then the policy will raise a fault on no match.  If this property is not
-present or is not true, then the policy will return success (no fault), but
-there will be the string "no match" in the `pbkdf2_error` context variable.
+When the policy runs with this configuration, it will set these context
+variables:
+
+| name  | value  |
+| ---- | ------ |
+| `pbkdf2_output_b16` | 79f59ed6ae7c63ad9a2d6caf9fb3293652386c358f4072b6c9483e8f13ccb0a4 |
+| `pbkdf2_output_b64url` | efWe1q58Y62aLWyvn7MpNlI4bDWPQHK2yUg-jxPMsKQ= |
+| `pbkdf2_output_b64` | efWe1q58Y62aLWyvn7MpNlI4bDWPQHK2yUg+jxPMsKQ= |
+
+
+The output value is suitable for use as symmetric key material for some other crypto
+processing that requires a symmetric key. 
+
+If you also set the `expected` property, like this:
+
+```xml
+<JavaCallout name="Java-PBKDF2">
+  <Properties>
+    <Property name='passphrase'>Melo_123</Property>
+    <Property name='iterations'>30000</Property>
+    <Property name='dklen'>32</Property>
+    <Property name='salt'>TSKRGzW5dWMC</Property>
+    <Property name='prf'>HMAC-SHA256</Property>
+    <Property name='expected'>{variable-containing-expected-value}</Property>
+  </Properties>
+  <ClassName>com.google.apigee.callouts.PBKDF2</ClassName>
+  <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
+</JavaCallout>
+```
+
+...then the policy will check the computed value against your expected value. The
+policy assumes the expected value is encoded with base64. If the expected value
+does not match the computed value, then the policy will set the string "no
+match" in the `pbkdf2_error` context variable.
+
+You would need to check this with a `Condition` element on a subsequent step in
+the flow.
+
+When you use the property `expected`, if you also specify `raise-fault-on-no-match` as true, like this:
+
+```xml
+<JavaCallout name="Java-PBKDF2">
+  <Properties>
+    <Property name='passphrase'>Melo_123</Property>
+    <Property name='iterations'>30000</Property>
+    <Property name='dklen'>32</Property>
+    <Property name='salt'>TSKRGzW5dWMC</Property>
+    <Property name='prf'>HMAC-SHA256</Property>
+    <Property name='expected'>{variable-containing-expected-value}</Property>
+    <Property name='raise-fault-on-no-match'>true</Property>
+  </Properties>
+  <ClassName>com.google.apigee.callouts.PBKDF2</ClassName>
+  <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
+</JavaCallout>
+```
+
+...then the policy will also raise a fault when the expected value does not
+match the computed value.  You can then handle this in a `FaultRule`.
 
 
 ## Policy: AesCrypto
