@@ -28,10 +28,7 @@ import com.apigee.flow.execution.IOIntensive;
 import com.apigee.flow.execution.spi.Execution;
 import com.apigee.flow.message.MessageContext;
 import com.google.apigee.encoding.Base16;
-import com.google.apigee.util.CalloutUtil;
 import com.google.apigee.util.PasswordUtil;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -45,7 +42,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 @IOIntensive
-public class AesCryptoCallout implements Execution {
+public class AesCryptoCallout extends CalloutBase implements Execution {
   private static final int AES_IV_LENGTH = 128;
   private static final int GCM_AUTH_DEFAULT_TAG_BITS = 128;
   private static final String defaultKeyStrength = "128";
@@ -55,15 +52,11 @@ public class AesCryptoCallout implements Execution {
   private static final String defaultCipherName = "AES";
   private static final String defaultCryptoMode = "CBC";
   private static final String defaultCryptoPadding = "PKCS5PADDING";
-  private static final String varprefix = "crypto_";
   private static final String defaultOutputVarSuffix = "output";
   private static final String TRUE = "true";
   private static final byte[] defaultSalt = "Apigee-IloveAPIs".getBytes(StandardCharsets.UTF_8);
   private static final SecureRandom secureRandom = new SecureRandom();
-  private static final String variableReferencePatternString =
-      "(.*?)\\{([^\\{\\} :][^\\{\\} ]*?)\\}(.*?)";
-  private static final Pattern variableReferencePattern =
-      Pattern.compile(variableReferencePatternString);
+
   private static Pattern fullCipherPattern =
       Pattern.compile(
           "^(AES)/(CBC|ECB|CFB|GCM)/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
@@ -71,35 +64,23 @@ public class AesCryptoCallout implements Execution {
   private static Pattern fullGCMCipherPattern =
       Pattern.compile("^(AES)/GCM/(NoPadding|PKCS5Padding)$", Pattern.CASE_INSENSITIVE);
 
-  private static final String commonError = "^(.+?)[:;] (.+)$";
-  private static final Pattern commonErrorPattern = Pattern.compile(commonError);
   private static final String defaultGcmAadLength = "16";
   // private static final int GCM_DEFAULT_TAG_BYTES = 16;
   private static final int GCM_MIN_TAG_BYTES = 0;
   private static final int GCM_MAX_TAG_BYTES = 2048;
 
-  private final Map<String, String> properties;
-
   public AesCryptoCallout(Map properties) {
-    this.properties = CalloutUtil.genericizeMap(properties);
+    super(properties);
   }
+
+  String getVarPrefix() {
+    return "crypto_";
+  };
 
   enum CryptoAction {
     DECRYPT,
     ENCRYPT
   };
-
-  enum EncodingType {
-    NONE,
-    BASE64,
-    BASE64URL,
-    BASE16,
-    HEX
-  };
-
-  private static String varName(String s) {
-    return varprefix + s;
-  }
 
   private String getSourceVar() {
     String source = this.properties.get("source");
@@ -108,41 +89,6 @@ public class AesCryptoCallout implements Execution {
       return "message.content";
     }
     return source;
-  }
-
-  private String resolveVariableReferences(String spec, MessageContext msgCtxt) {
-    Matcher matcher = variableReferencePattern.matcher(spec);
-    StringBuffer sb = new StringBuffer();
-    while (matcher.find()) {
-      matcher.appendReplacement(sb, "");
-      sb.append(matcher.group(1));
-      String ref = matcher.group(2);
-      String[] parts = ref.split(":", 2);
-      Object v = msgCtxt.getVariable(parts[0]);
-      if (v != null) {
-        sb.append((String) v);
-      } else if (parts.length > 1) {
-        sb.append(parts[1]);
-      }
-      sb.append(matcher.group(3));
-    }
-    matcher.appendTail(sb);
-    return sb.toString();
-  }
-
-  private byte[] _getByteArrayProperty(MessageContext msgCtxt, String propName) throws Exception {
-    String key = this.properties.get(propName);
-    if (key != null) key = key.trim();
-    if (key == null || key.equals("")) {
-      return null;
-    }
-    key = resolveVariableReferences(key, msgCtxt);
-    if (key == null || key.equals("")) {
-      throw new IllegalStateException(propName + " resolves to null or empty.");
-    }
-    EncodingType decodingKind = _getEncodingTypeProperty(msgCtxt, "decode-" + propName);
-    byte[] a = decodeString(key, decodingKind);
-    return a;
   }
 
   private byte[] getIv(MessageContext msgCtxt) throws Exception {
@@ -166,40 +112,8 @@ public class AesCryptoCallout implements Execution {
     return (result == null) ? defaultSalt : result;
   }
 
-  private String _getStringProp(MessageContext msgCtxt, String name, String defaultValue)
-      throws Exception {
-    String value = this.properties.get(name);
-    if (value != null) value = value.trim();
-    if (value == null || value.equals("")) {
-      return defaultValue;
-    }
-    value = resolveVariableReferences(value, msgCtxt);
-    if (value == null || value.equals("")) {
-      throw new IllegalStateException(name + " resolves to null or empty.");
-    }
-    return value;
-  }
-
-  private EncodingType _getEncodingTypeProperty(MessageContext msgCtxt, String propName)
-      throws Exception {
-    return EncodingType.valueOf(_getStringProp(msgCtxt, propName, "NONE").toUpperCase());
-  }
-
   private EncodingType getEncodeResult(MessageContext msgCtxt) throws Exception {
     return _getEncodingTypeProperty(msgCtxt, "encode-result");
-  }
-
-  private byte[] decodeString(String s, EncodingType decodingKind) throws Exception {
-    if (decodingKind == EncodingType.HEX || decodingKind == EncodingType.BASE16) {
-      return Base16.decode(s);
-    }
-    if (decodingKind == EncodingType.BASE64) {
-      return Base64.getDecoder().decode(s);
-    }
-    if (decodingKind == EncodingType.BASE64URL) {
-      return Base64.getUrlDecoder().decode(s);
-    }
-    return s.getBytes(StandardCharsets.UTF_8);
   }
 
   private CryptoAction getAction(MessageContext msgCtxt) throws Exception {
@@ -219,7 +133,7 @@ public class AesCryptoCallout implements Execution {
       return PasswordUtil.PRF.HMACSHA1;
     }
     prfString = resolveVariableReferences(prfString, msgCtxt);
-    return PasswordUtil.PRF.valueOf(prfString.toUpperCase().replaceAll("-",""));
+    return PasswordUtil.PRF.valueOf(prfString.toUpperCase().replaceAll("-", ""));
   }
 
   private int getKeyStrength(MessageContext msgCtxt) throws Exception {
@@ -299,24 +213,6 @@ public class AesCryptoCallout implements Execution {
     return cipher;
   }
 
-  private boolean getDebug(MessageContext msgCtxt) throws Exception {
-    return _getBooleanProperty(msgCtxt, "debug", false);
-  }
-
-  private boolean _getBooleanProperty(MessageContext msgCtxt, String propName, boolean defaultValue)
-      throws Exception {
-    String flag = this.properties.get(propName);
-    if (flag != null) flag = flag.trim();
-    if (flag == null || flag.equals("")) {
-      return defaultValue;
-    }
-    flag = resolveVariableReferences(flag, msgCtxt);
-    if (flag == null || flag.equals("")) {
-      return defaultValue;
-    }
-    return flag.equalsIgnoreCase(TRUE);
-  }
-
   private boolean getUtf8DecodeResult(MessageContext msgCtxt) throws Exception {
     return _getBooleanProperty(msgCtxt, "utf8-decode-result", false);
   }
@@ -380,23 +276,13 @@ public class AesCryptoCallout implements Execution {
     return clearText;
   }
 
-  private static void clearVariables(MessageContext msgCtxt) {
-    msgCtxt.removeVariable(varName("error"));
-    msgCtxt.removeVariable(varName("exception"));
-    msgCtxt.removeVariable(varName("stacktrace"));
+  @Override
+  protected void clearVariables(MessageContext msgCtxt) {
+    super.clearVariables(msgCtxt);
     msgCtxt.removeVariable(varName("mode"));
     msgCtxt.removeVariable(varName("padding"));
     msgCtxt.removeVariable(varName("action"));
     msgCtxt.removeVariable(varName("prf"));
-  }
-
-  private static void emitEncodedOutput(MessageContext msgCtxt, String name, byte[] data) {
-    String encoded = Base16.encode(data);
-    msgCtxt.setVariable(varName(name + "_b16"), encoded);
-    encoded = Base64.getUrlEncoder().encodeToString(data);
-    msgCtxt.setVariable(varName(name + "_b64url"), encoded);
-    encoded = Base64.getEncoder().encodeToString(data);
-    msgCtxt.setVariable(varName(name + "_b64"), encoded);
   }
 
   private void setOutput(MessageContext msgCtxt, byte[] key, byte[] iv, byte[] result)
@@ -430,24 +316,6 @@ public class AesCryptoCallout implements Execution {
       msgCtxt.setVariable(outputKeyVar, encoder.apply(key));
       String outputIvVar = varName("output_iv");
       msgCtxt.setVariable(outputIvVar, encoder.apply(iv));
-    }
-  }
-
-  private static String getStackTraceAsString(Throwable t) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    t.printStackTrace(pw);
-    return sw.toString();
-  }
-
-  private void setExceptionVariables(Exception exc1, MessageContext msgCtxt) {
-    String error = exc1.toString().replaceAll("\n", " ");
-    msgCtxt.setVariable(varName("exception"), error);
-    Matcher matcher = commonErrorPattern.matcher(error);
-    if (matcher.matches()) {
-      msgCtxt.setVariable(varName("error"), matcher.group(2));
-    } else {
-      msgCtxt.setVariable(varName("error"), error);
     }
   }
 

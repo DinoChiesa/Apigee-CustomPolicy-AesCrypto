@@ -1,7 +1,9 @@
-# AES Crypto callout
+ # AES Crypto callout
 
-This directory contains the Java source code for a Java callout for Apigee
-that performs AES Encryption and Decryption of data or message payloads.
+This directory contains the Java source code for two Java callouts for Apigee:
+
+1. AesCryptoCallout - performs AES Encryption and Decryption of data or message payloads.
+2. PBKDF2 - performs PBKDF2 key derivation from a passphrase.
 
 ## License
 
@@ -14,19 +16,75 @@ This example is not an official Google product, nor is it part of an official Go
 
 ## Using the Custom Policy
 
-You do not need to build the Jar in order to use the custom policy.
+You do not need to build the Jar in order to use the custom policies.
 
-When you use the policy to encrypt data, the resulting cipher-text can be
+When you use the AesCryptoCallout policy to encrypt data, the resulting cipher-text can be
 decrypted by other systems. Likewise, the policy can decrypt cipher-text
 obtained from other systems. To do that, the encrypting and decrypting systems
 need to use the same key, the same AES mode, the same padding, and the same
 Initialization Vector (IV). Read up on AES if this is not clear to you.
 
-The policy performs only AES crypto.
+When you use the PBKDF2 policy to generate keys, the resulting key can be used for anything you like.
 
-## Policy Configuration
+## Policy Configuration: PBKDF2
 
-The policy performs encryption or decryption of data, using the AES
+[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) refers to Password-Based Key
+Derivation Function 2. This is a standard described officially in [IETF RFC
+2898](https://www.ietf.org/rfc/rfc2898.txt). It allows the derivation of a
+cryptographically strong key from a text password.
+
+The PBKDF2 policy derives keys from passphrases, following the
+[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2)
+algorithm.
+
+PBKDF2 requires as input:
+- a passphrase,
+- a salt,
+- a desired output key length in bytes (aka dklen),
+- a number of iterations, and
+- a pseudo-random function (PRF).  This is usually a keyed MAC, aka HMAC.
+
+When using the PBKDF2 policy, you must specify all of those settings. There are no defaults.
+
+The policy emits the output into variables: `pbkdf2_output_b16`, `pbkdf2_output_b64`, and `pbkdf2_output_b64url` for the base16, base64 and base64url-encoded versions of the result.
+
+## Example PBKDF2
+
+  ```xml
+  <JavaCallout name="Java-PBKDF2">
+    <Properties>
+      <Property name='passphrase'>Melo_123</Property>
+      <Property name='iterations'>30000</Property>
+      <Property name='dklen'>32</Property>
+      <Property name='salt'>TSKRGzW5dWMC</Property>
+      <Property name='prf'>HMAC-SHA256</Property>
+    </Properties>
+    <ClassName>com.google.apigee.callouts.PBKDF2</ClassName>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
+  </JavaCallout>
+  ```
+
+After this policy runs, the context variable `pbkdf2_output_b64` will contain `efWe1q58Y62aLWyvn7MpNlI4bDWPQHK2yUg+jxPMsKQ=`.
+
+If you also set
+```
+      <Property name='expected'>{variable-containing-expected-value}</Property>
+```
+...the policy will check the computed value against your expected value.
+
+In this case, if you also set
+```
+      <Property name='raise-fault-on-no-match'>true</Property>
+```
+
+...then the policy will raise a fault on no match.  If this property is not
+present or is not true, then the policy will return success (no fault), but
+there will be the string "no match" in the `pbkdf2_error` context variable.
+
+
+## Policy: AesCrypto
+
+The AesCryptoCallout policy performs encryption or decryption of data, using the AES
 algorithm. There are a variety of options, which you can select using Properties
 in the configuration. Examples follow, but here's a quick summary:
 
@@ -44,25 +102,13 @@ in the configuration. Examples follow, but here's a quick summary:
 
 The policy has not been tested with AES modes other than GCM, CBC, OFB, or CFB.
 
-## Deriving Keys from Passphrases
+## AesCrypto: Deriving Keys from Passphrases
 
-[PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) refers to Password-Based Key
-Derivation Function 2. This is a standard described officially in [IETF RFC
-2898](https://www.ietf.org/rfc/rfc2898.txt). It allows the derivation of a
-cryptographically strong key from a text password.
-
-This custom policy can derive a key and optionally, an IV, from a passphrase using PBKDF2.
-
-PBKDF2 requires as input:
-- a passphrase,
-- a salt,
-- a key strength,
-- a number of iterations, and
-- a pseudo-random function (PRF).  This is usually a keyed MAC, aka HMAC.
+The AesCrypto custom policy can derive a key and optionally, an IV, from a passphrase using PBKDF2.
 
 This callout supports `HMAC-SHA1` and `HMAC-SHA256` as the PRF. The maximum number of iterations is 2560000.
 
-When configuring this policy to use PBKDF2, you must specify a
+When configuring the AesCrypto policy to use PBKDF2, you must specify a
 passphrase. You may optionally specify a salt, a desired output key strength in
 bits, a number of iterations, and/or a PRF. The policy defaults those settings to the
 UTF-8 bytes for "Apigee-IloveAPIs", 128, 128001, and HMAC-SHA1, respectively, when they are
@@ -77,7 +123,6 @@ for AES is always 128 bits; that is the block length of AES.
 
 To tell the policy to generate the key and use a static IV, specify the iv explicitly.
 
-
 ## Example: Basic Encryption with a Passphrase, and Numerous Defaults
 
   ```xml
@@ -89,7 +134,7 @@ To tell the policy to generate the key and use a static IV, specify the iv expli
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -123,7 +168,7 @@ and IV. And then the same AES mode, which here has defaulted to CBC.
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -184,7 +229,7 @@ These are the properties available on the policy:
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -214,7 +259,7 @@ What will this policy configuration do?
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -249,7 +294,7 @@ Here's what will happen with this configuration:
       <Property name='encode-result'>base64</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -280,7 +325,7 @@ For this you must specify an `aad`, and a `tag`, along with a `key` and `iv`.
       <Property name='utf8-decode-result'>true</Property>
     </Properties>
     <ClassName>com.google.apigee.callouts.AesCryptoCallout</ClassName>
-    <ResourceURL>java://apigee-callout-aes-crypto-20211122.jar</ResourceURL>
+    <ResourceURL>java://apigee-callout-aes-crypto-20211122a.jar</ResourceURL>
   </JavaCallout>
   ```
 
@@ -405,9 +450,14 @@ To build: `mvn clean package`
 The Jar source code includes tests.
 
 If you edit policies offline, copy [the jar file for the custom
-policy](callout/target/apigee-callout-aes-crypto-20211122.jar) to your
+policy](callout/target/apigee-callout-aes-crypto-20211122a.jar) to your
 apiproxy/resources/java directory.  If you don't edit proxy bundles offline,
 upload that jar file into the API Proxy via the Edge API Proxy Editor .
+
+
+## Bugs
+
+- There is no example proxy for the PBKDF2 callout.
 
 
 ## Author

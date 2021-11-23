@@ -1,4 +1,4 @@
-// TestAesCryptoCallout.java
+// AesCryptoCalloutTest.java
 //
 // Test code for the AES Crypto custom policy for Apigee Edge. Uses TestNG.
 // For full details see the Readme accompanying this source file.
@@ -37,63 +37,13 @@
 
 package com.google.apigee.callouts;
 
-import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;
-import com.apigee.flow.message.MessageContext;
 import java.util.HashMap;
 import java.util.Map;
-import mockit.Mock;
-import mockit.MockUp;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class TestAesCryptoCallout {
-
-  MessageContext msgCtxt;
-  ExecutionContext exeCtxt;
-
-  @BeforeMethod()
-  public void testSetup1() {
-
-    msgCtxt =
-        new MockUp<MessageContext>() {
-          private Map<String, Object> variables;
-
-          public void $init() {
-            getVariables();
-          }
-
-          private Map<String, Object> getVariables() {
-            if (variables == null) {
-              variables = new HashMap<String, Object>();
-            }
-            return variables;
-          }
-
-          @Mock()
-          public Object getVariable(final String name) {
-            return getVariables().get(name);
-          }
-
-          @Mock()
-          public boolean setVariable(final String name, final Object value) {
-            getVariables().put(name, value);
-            return true;
-          }
-
-          @Mock()
-          public boolean removeVariable(final String name) {
-            if (getVariables().containsKey(name)) {
-              variables.remove(name);
-            }
-            return true;
-          }
-        }.getMockInstance();
-
-    exeCtxt = new MockUp<ExecutionContext>() {}.getMockInstance();
-    System.out.printf("=============================================\n");
-  }
+public class AesCryptoCalloutTest extends TestBase {
 
   private void reportThings(Map<String, String> props) {
     String test = props.get("testname");
