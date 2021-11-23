@@ -47,12 +47,12 @@ PBKDF2 requires as input:
 When using the PBKDF2 policy, you must specify all of those inputs
 explicitly. There are no defaults. Some additional information:
 
-- the policy decodes the salt value via UTF-8 by default. Specify `decode-salt` as one of
-  {`base16`, `base64` or `base64url`} to tell the policy to decode the salt
+- The policy decodes the salt value via UTF-8 by default. Specify `decode-salt` as one of
+  {`base16`, `base64` or `base64url`} to tell the policy to decode the salt string
   differently.
 - The output key length must be no more than 4096 bytes.
-- The maximum number of iterations is 2560000. Using a large value for iteration count will result in
-significant computation time, at runtime.
+- The maximum number of iterations is 2560000. Using a large value for the iteration count will result in
+significant computation time at runtime.
 - This policy supports `HMAC-SHA1` and `HMAC-SHA256` as the PRF.
 
 
@@ -341,7 +341,7 @@ Here's what will happen with this configuration:
       <Property name='debug'>true</Property>
       <Property name='passphrase'>{request.queryparam.passphrase}</Property>
       <Property name='pbkdf2-iterations'>65000</Property>
-      <Property name='pbkdf2-prf>HMAC-SHA256</Property>
+      <Property name='pbkdf2-prf'>HMAC-SHA256</Property>
       <Property name='salt'>VarietyIsTheSpiceOfLife</Property>
       <Property name='key-strength'>256</Property>
       <Property name='iv'>00000000000000000000000000000000</Property>
