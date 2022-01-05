@@ -113,6 +113,7 @@ do it manually by running these commands:
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
+          <showDeprecation>true</showDeprecation>
           <source>${jdk.target.version}</source>
           <target>${jdk.target.version}</target>
           <compilerArgs>
@@ -137,24 +138,31 @@ do it manually by running these commands:
 
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <id>ant1</id>
             <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
             <configuration>
-              <tasks>
+              <target>
                 <delete>
                   <fileset dir="${apiproxy.java.rsrc.dir}"
                            includes="*.jar" />
                 </delete>
-              </tasks>
+              </target>
             </configuration>
           </execution>
           <execution>
             <id>ant2</id>
             <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
             <configuration>
-              <tasks>
+              <target>
                 <copy todir="${apiproxy.java.rsrc.dir}">
                   <fileset dir="${project.build.directory}">
                     <include name="${project.build.finalName}.jar"/>
@@ -168,11 +176,8 @@ do it manually by running these commands:
                   </fileset>
                   <mapper type="flatten"/>
                 </copy>
-              </tasks>
+              </target>
             </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
