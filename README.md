@@ -89,7 +89,7 @@ variables:
 
 
 The output value is suitable for use as symmetric key material for some other crypto
-processing that requires a symmetric key. 
+processing that requires a symmetric key.
 
 If you also set the `expected` property, like this:
 
@@ -448,11 +448,12 @@ stream with AES / GCM, the actor also specifies an "Additional Authenticated
 Data", or AAD. This is not a secret, but is used in the encryption. In theory,
 this can be from 0 to 2^64 bits.
 
-With this policy, for encryption you use
-the aad parameter to specify the AAD.
+With this policy, for encryption you use the `aad` property to specify the AAD.
 
-The resulting Authentication tag (an output of AES / GCM) is appended to the
-ciphertext. By default, this policy emits 128 bits of tag.
+The resulting Authentication _tag_ (an output of AES / GCM) is appended to the
+ciphertext. By default, this policy emits 128 bits of tag.  If you want to
+affect the size of the tag, you can specify the `tag-bits` property during
+encryption.
 
 For decryption, the actor must again supply the AAD - remember, it's not a
 secret. And the actor must supply the authentication tag, if it is not already
@@ -460,7 +461,6 @@ appended to the ciphertext. Do this with the tag parameter.
 
 Whether decrypting or encrypting a byte stream with AES / GCM, there is no meaning
 to padding, so NoPadding is equivalent to PKCS5Padding.
-
 
 
 ## On Key Strength
